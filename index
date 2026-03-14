@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Great Dalmuti: Elite Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Serif+KR:wght@400;700&display=swap');
+        :root { --gold: #dfbb69; --parchment: #f4e4bc; --table-green: #1a3c2a; --bg: #0a0c10; --card-red: #d32f2f; --ink: #2c1810; }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; background: var(--bg); color: #eee; font-family: 'Noto Serif KR', serif; display: flex; height: 100vh; overflow: hidden; }
+
+        /* 🚪 UI Modals (보안 및 엔터 연동 고정) */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .modal { background: #1a1f26; padding: 35px; border-radius: 12px; border: 2px solid var(--gold); text-align: center; width: 450px; }
+        .modal h1 { font-family: 'Cinzel'; color: var(--gold); margin-bottom: 20px; }
+        input { width: 100%; background: #000; border: 1px solid #444; color: white; padding: 12px; border-radius: 4px; font-family: 'Cinzel'; margin-bottom: 15px; }
+        .btn { display: block; width: 100%; padding: 14px; margin: 8px 0; background: none; border: 1px solid var(--gold); color: var(--gold); font-family: 'Cinzel'; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn:hover { background: var(--gold); color: black; }
+        .btn.start-btn { border-color: #4CAF50; color: #4CAF50; font-size: 1.5rem; }
+
+        /* 📜 Left Panel: Parchment (고정) */
+        #left-panel { width: 300px; background: #111; border-right: 2px solid #222; padding: 15px; display: flex; flex-direction: column; }
+        .parchment { flex: 1; background: var(--parchment); color: var(--ink); padding: 20px; border-radius: 3px; background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png'); overflow-y: auto; border: 1px solid #c5b38a; }
+        .parchment h2 { font-family: 'Cinzel'; border-bottom: 2px solid var(--ink); text-align: center; font-size: 1.2rem; }
+        .rule-item { margin-bottom: 6px; font-size: 0.8rem; font-weight: bold; }
+
+        /* 🏟️ Game Arena */
+        #main-game { flex: 1; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: 0.5s; }
+        #main-game.active { opacity: 1; pointer-events: all; }
+        #arena { flex: 1; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1a2a22 0%, #05070a 100%); position: relative; }
+        .table { width: 90%; height: 340px; background: var(--table-green); border: 12px solid #2a1a10; border-radius: 170px; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+
+        /* 🃏 Card Style (디자인 고정) */
+        .card { width: 95px; height: 140px; background: white; color: black; border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between; padding: 8px; font-weight: 900; position: relative; transition: 0.2s; user-select: none; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .card .corner { display: flex; flex-direction: column; line-height: 1; font-family: 'Cinzel', sans-serif; }
+        .card .rank-job { font-size: 0.55rem; color: var(--card-red); margin-top: 2px; }
+        .card .center-val { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; opacity: 0.1; }
+        .card.selected { transform: translateY(-35px) !important; border: 3px solid var(--gold); box-shadow: 0 0 20px var(--gold); }
+        .played-card { animation: toss 0.4s ease-out forwards; margin: 0 4px; }
+        @keyframes toss { from { transform: scale(1.5) translateY(200px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+
+        /* 🕹️ Controls & Turn Display */
+        #player-area { height: 250px; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; padding: 15px; border-top: 2px solid #333; transition: 0.3s; }
+        /* 내 턴일 때 하단 영역 강조 */
+        #player-area.my-turn { border-top: 2px solid var(--gold); background: rgba(223, 187, 105, 0.05); box-shadow: inset 0 10px 30px rgba(223, 187, 105, 0.1); }
+        
+        #hand { display: flex; margin-top: 20px; }
+        #hand .card { margin-left: -40px; transition: 0.3s; }
+        #hand .card:first-child { margin-left: 0; }
+        /* 내 턴일 때 카드들이 살짝 들림 */
+        .my-turn #hand .card:not(.selected) { transform: translateY(-10px); }
+
+        aside#right-panel { width: 300px; background: #0a0c10; border-left: 2px solid #222; padding: 15px; display: flex; flex-direction: column; }
+        #game-logs { flex: 1; overflow-y: auto; font-size: 0.8rem; color: #ccc; margin-top: 10px; border-bottom: 1px solid #222; margin-bottom: 10px; }
+        
+        /* 턴 표시 리스트 스타일 */
+        .player-entry { padding: 8px; margin-bottom: 5px; border-radius: 4px; transition: 0.3s; border-left: 3px solid transparent; }
+        .player-entry.active-turn { background: rgba(223, 187, 105, 0.15); border-left: 3px solid var(--gold); color: var(--gold); font-weight: bold; }
+        .turn-arrow { margin-right: 8px; opacity: 0; transition: 0.3s; }
+        .active-turn .turn-arrow { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="lobby-modal" class="overlay">
+        <div class="modal">
+            <h1>DALMUTI ROYAL</h1>
+            <button class="btn" onclick="openModal('host-login-modal')">HOST LOGIN</button>
+            <div id="room-list-container"><p style="color:#555; font-size:0.8rem;">No active rooms</p></div>
+            <button class="btn secondary" onclick="initGame('NPC', false)">QUICK NPC PLAY</button>
+        </div>
+    </div>
+
+    <div id="host-login-modal" class="overlay" style="display:none">
+        <div class="modal">
+            <h1>MASTER ACCESS</h1>
+            <input type="password" id="m-pw" placeholder="Enter Master Password" onkeypress="if(event.key==='Enter') verifyMaster()">
+            <button class="btn" onclick="verifyMaster()">VERIFY</button>
+            <button class="btn secondary" onclick="closeModals()">BACK</button>
+        </div>
+    </div>
+
+    <div id="create-modal" class="overlay" style="display:none">
+        <div class="modal">
+            <h1>CREATE ROOM</h1>
+            <input type="text" id="r-title" placeholder="Room Title" onkeypress="if(event.key==='Enter') createRoom()">
+            <input type="password" id="r-pw" placeholder="Room Password" onkeypress="if(event.key==='Enter') createRoom()">
+            <button class="btn" onclick="createRoom()">OPEN ROOM</button>
+        </div>
+    </div>
+
+    <div id="left-panel">
+        <div class="parchment">
+            <h2>The Royal Order</h2>
+            <div id="rule-box"></div>
+        </div>
+    </div>
+
+    <main id="main-game">
+        <div id="arena">
+            <div id="status-text" style="position:absolute; top:20px; color:var(--gold); font-size:1.3rem; font-family:Cinzel; text-shadow: 0 0 10px rgba(0,0,0,1);">WAITING</div>
+            <div id="host-zone" style="display:none; z-index:100;"><button class="btn start-btn" onclick="gameStart()">START GAME</button></div>
+            <div class="table"><div id="table-cards" style="display:flex;"></div></div>
+        </div>
+        <div id="player-area">
+            <div id="play-btns" style="display:none;">
+                <button class="btn" style="display:inline-block; width:130px;" onclick="submitMove()">SUBMIT</button>
+                <button class="btn" style="display:inline-block; width:130px; margin-left:10px;" onclick="passTurn()">PASS</button>
+            </div>
+            <div id="hand"></div>
+        </div>
+    </main>
+
+    <aside id="right-panel">
+        <h3 id="room-name" style="color:var(--gold); margin:0; font-family:Cinzel; border-bottom: 1px solid #333; padding-bottom:10px;">DALMUTI</h3>
+        <div id="p-list" style="margin-top:15px;"></div>
+        <div style="font-size: 0.7rem; color: #555; margin-top: 15px; text-transform: uppercase;">Chronicle</div>
+        <div id="game-logs"></div>
+        <input type="text" id="chat-box" placeholder="Chat here..." onkeypress="sendChat(event)">
+    </aside>
+
+    <script>
+        const JOBS = ["", "달무티", "총리", "대주교", "세금징수원", "수습기사", "상인", "농부", "광부", "양치기", "요리사", "석공", "대장장이", "농노"];
+        const MASTER_KEY = "00123";
+        let players = [], turn = 0, last = { rank: 14, count: 0, owner: -1 }, selected = [], room = null, isHost = false;
+
+        // Init Rulebook
+        const rb = document.getElementById('rule-box');
+        for(let i=1; i<=13; i++) if(JOBS[i]) rb.innerHTML += `<div class="rule-item">${i}. ${JOBS[i]} (${i}장)</div>`;
+
+        // Modal Logic
+        function openModal(id) { document.querySelectorAll('.overlay').forEach(o=>o.style.display='none'); document.getElementById(id).style.display='flex'; }
+        function closeModals() { document.querySelectorAll('.overlay').forEach(o=>o.style.display='none'); document.getElementById('lobby-modal').style.display='flex'; }
+        function verifyMaster() { if(document.getElementById('m-pw').value === MASTER_KEY) openModal('create-modal'); else alert("WRONG PW"); }
+        function createRoom() { room = { title: document.getElementById('r-title').value || "Royal Palace", pw: document.getElementById('r-pw').value }; initGame('MULTI', true); }
+        function joinRoom() { const p = prompt("Password:"); if(p === room.pw) initGame('MULTI', false); }
+        function updateLobby() { if(room) document.getElementById('room-list-container').innerHTML = `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333;"><span>🏰 ${room.title}</span><button onclick="joinRoom()" style="color:var(--gold); background:none; border:1px solid var(--gold); cursor:pointer; padding: 2px 8px;">JOIN</button></div>`; }
+
+        // Game Engine
+        function initGame(m, h) {
+            isHost = h; document.querySelectorAll('.overlay').forEach(o=>o.style.display='none');
+            document.getElementById('main-game').classList.add('active');
+            document.getElementById('room-name').innerText = m === 'NPC' ? "NPC MODE" : room.title;
+            players = [{ name: isHost ? "나(방장)" : "나", cards: [], isNPC: false }];
+            if(m === 'NPC') { while(players.length < 4) players.push({ name: "NPC " + players.length, cards: [], isNPC: true }); gameStart(); }
+            else { if(isHost) document.getElementById('host-zone').style.display = 'block'; refresh(); }
+        }
+
+        function gameStart() {
+            document.getElementById('host-zone').style.display = 'none';
+            document.getElementById('play-btns').style.display = 'block';
+            while(players.length < 4) players.push({ name: "용병 NPC " + players.length, cards: [], isNPC: true });
+            
+            let deck = []; for(let i=1; i<=12; i++) for(let j=0; j<i; j++) deck.push(i);
+            for(let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+            let pIdx = 0; while(deck.length > 0) { players[pIdx % players.length].cards.push(deck.pop()); pIdx++; }
+            players.forEach(p => p.cards.sort((a,b)=>a-b));
+            log("SYSTEM", "Game Started.");
+            refresh();
+        }
+
+        function refresh() {
+            // 하단 컨트롤 영역 내 턴 강조
+            const playerArea = document.getElementById('player-area');
+            if(turn === 0) playerArea.classList.add('my-turn');
+            else playerArea.classList.remove('my-turn');
+
+            // 핸드 렌더링
+            const h = document.getElementById('hand'); h.innerHTML = '';
+            players[0].cards.forEach((n, i) => {
+                const c = document.createElement('div');
+                c.className = `card ${selected.includes(i) ? 'selected' : ''}`;
+                c.innerHTML = `<div class="corner"><span style="font-size:1.2rem">${n}</span><span class="rank-job">${JOBS[n]}</span></div><div class="center-val">${n}</div><div class="corner" style="align-self:flex-end; transform:rotate(180deg)"><span style="font-size:1.2rem">${n}</span><span class="rank-job">${JOBS[n]}</span></div>`;
+                c.onclick = () => { if(turn === 0) {
+                    const val = players[0].cards[i];
+                    if(selected.length > 0 && players[0].cards[selected[0]] !== val) selected = [];
+                    const p = selected.indexOf(i); if(p > -1) selected.splice(p,1); else selected.push(i);
+                    refresh();
+                }};
+                h.appendChild(c);
+            });
+
+            // 플레이어 리스트 턴 강조 표시
+            document.getElementById('p-list').innerHTML = players.map((p, i) => `
+                <div class="player-entry ${turn === i ? 'active-turn' : ''}">
+                    <span class="turn-arrow">►</span>
+                    ${p.name} <small style="float:right; opacity:0.7;">${p.cards.length}장</small>
+                </div>
+            `).join('');
+            
+            document.getElementById('status-text').innerText = players[turn].name + (turn === 0 ? " (당신)" : "") + "의 차례";
+        }
+
+        function submitMove() {
+            if(selected.length === 0) return;
+            const r = players[0].cards[selected[0]], c = selected.length;
+            if(last.owner === -1 || (r < last.rank && c === last.count)) execute(r, c);
+            else alert("낼 수 없는 패입니다.");
+        }
+
+        function execute(rank, count) {
+            const p = players[turn];
+            if(!p.isNPC) { selected.sort((a,b)=>b-a).forEach(i=>p.cards.splice(i,1)); }
+            else { for(let i=0; i<count; i++) p.cards.splice(p.cards.indexOf(rank), 1); }
+            
+            last = { rank, count, owner: turn };
+            const tc = document.getElementById('table-cards'); tc.innerHTML = '';
+            for(let i=0; i<count; i++) tc.innerHTML += `<div class="card played-card"><div class="center-val" style="opacity:1; font-size:2rem;">${rank}</div></div>`;
+            log(p.name, `${JOBS[rank]} x${count}`);
+            if(p.cards.length === 0) { alert(p.name + " 승리! 왕좌를 차지했습니다."); location.reload(); }
+            selected = []; turn = (turn + 1) % players.length;
+            checkRound(); refresh();
+            if(players[turn].isNPC) setTimeout(npcBrain, 1200);
+        }
+
+        function passTurn() { log(players[turn].name, "PASS"); turn = (turn + 1) % players.length; checkRound(); refresh(); if(players[turn].isNPC) setTimeout(npcBrain, 1200); }
+        function checkRound() { if(last.owner === turn) { last = { rank: 14, count: 0, owner: -1 }; log("SYSTEM", "새 라운드가 시작됩니다."); } }
+
+        function npcBrain() {
+            const h = players[turn].cards;
+            const groups = {}; h.forEach(n => groups[n] = (groups[n] || 0) + 1);
+            let targetR = -1, targetC = 0;
+
+            if(last.owner === -1) {
+                const sorted = Object.keys(groups).map(Number).sort((a,b) => groups[b] - groups[a]);
+                targetR = sorted[0]; targetC = groups[targetR];
+            } else {
+                const possible = Object.keys(groups).map(Number).filter(r => r < last.rank && groups[r] === last.count).sort((a,b) => b - a);
+                if(possible.length > 0) { targetR = possible[0]; targetC = last.count; }
+            }
+            if(targetR !== -1) execute(targetR, targetC); else passTurn();
+        }
+
+        function log(u, m) { const g = document.getElementById('game-logs'); g.innerHTML += `<div><b>${u}:</b> ${m}</div>`; g.scrollTop = g.scrollHeight; }
+        function sendChat(e) { if(e.key==='Enter' && e.target.value.trim()){ log("나", e.target.value); e.target.value=''; } }
+        setInterval(updateLobby, 1000);
+    </script>
+</body>
+</html>
