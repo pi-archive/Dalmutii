@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Great Dalmuti: Elite Edition</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Serif+KR:wght@400;700&display=swap');
         :root { --gold: #dfbb69; --parchment: #f4e4bc; --table-green: #1a3c2a; --bg: #0a0c10; --card-red: #d32f2f; --ink: #2c1810; }
@@ -15,7 +19,7 @@
         .modal { background: #1a1f26; padding: 35px; border-radius: 12px; border: 2px solid var(--gold); text-align: center; width: 450px; }
         .modal h1 { font-family: 'Cinzel'; color: var(--gold); margin-bottom: 20px; }
         input { width: 100%; background: #000; border: 1px solid #444; color: white; padding: 12px; border-radius: 4px; font-family: 'Cinzel'; margin-bottom: 15px; }
-        .btn { display: block; width: 100%; padding: 14px; margin: 8px 0; background: none; border: 1px solid var(--gold); color: var(--gold); font-family: 'Cinzel'; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn { display: block; width: 100%; padding: 14px; margin: 8px 0; background: none; border: 1px solid var(--gold); color: var(--gold); font-family: 'Cinzel'; cursor: pointer; font-weight: bold; transition: 0.3s; text-align: center; text-decoration: none; }
         .btn:hover { background: var(--gold); color: black; }
         .btn.start-btn { border-color: #4CAF50; color: #4CAF50; font-size: 1.5rem; }
 
@@ -42,19 +46,14 @@
 
         /* 🕹️ Controls & Turn Display */
         #player-area { height: 250px; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; padding: 15px; border-top: 2px solid #333; transition: 0.3s; }
-        /* 내 턴일 때 하단 영역 강조 */
         #player-area.my-turn { border-top: 2px solid var(--gold); background: rgba(223, 187, 105, 0.05); box-shadow: inset 0 10px 30px rgba(223, 187, 105, 0.1); }
-        
         #hand { display: flex; margin-top: 20px; }
         #hand .card { margin-left: -40px; transition: 0.3s; }
         #hand .card:first-child { margin-left: 0; }
-        /* 내 턴일 때 카드들이 살짝 들림 */
         .my-turn #hand .card:not(.selected) { transform: translateY(-10px); }
 
         aside#right-panel { width: 300px; background: #0a0c10; border-left: 2px solid #222; padding: 15px; display: flex; flex-direction: column; }
         #game-logs { flex: 1; overflow-y: auto; font-size: 0.8rem; color: #ccc; margin-top: 10px; border-bottom: 1px solid #222; margin-bottom: 10px; }
-        
-        /* 턴 표시 리스트 스타일 */
         .player-entry { padding: 8px; margin-bottom: 5px; border-radius: 4px; transition: 0.3s; border-left: 3px solid transparent; }
         .player-entry.active-turn { background: rgba(223, 187, 105, 0.15); border-left: 3px solid var(--gold); color: var(--gold); font-weight: bold; }
         .turn-arrow { margin-right: 8px; opacity: 0; transition: 0.3s; }
@@ -67,8 +66,10 @@
         <div class="modal">
             <h1>DALMUTI ROYAL</h1>
             <button class="btn" onclick="openModal('host-login-modal')">HOST LOGIN</button>
-            <div id="room-list-container"><p style="color:#555; font-size:0.8rem;">No active rooms</p></div>
-            <button class="btn secondary" onclick="initGame('NPC', false)">QUICK NPC PLAY</button>
+            <div id="room-list-container" style="max-height: 200px; overflow-y: auto; margin: 15px 0; border-radius: 8px; background: rgba(0,0,0,0.2);">
+                <p style="color:#555; padding: 10px; font-size:0.8rem;">Searching for rooms...</p>
+            </div>
+            <button class="btn secondary" onclick="initGame('NPC', false)">QUICK NPC PLAY (OFFLINE)</button>
         </div>
     </div>
 
@@ -87,6 +88,7 @@
             <input type="text" id="r-title" placeholder="Room Title" onkeypress="if(event.key==='Enter') createRoom()">
             <input type="password" id="r-pw" placeholder="Room Password" onkeypress="if(event.key==='Enter') createRoom()">
             <button class="btn" onclick="createRoom()">OPEN ROOM</button>
+            <button class="btn secondary" onclick="closeModals()">CANCEL</button>
         </div>
     </div>
 
@@ -99,7 +101,7 @@
 
     <main id="main-game">
         <div id="arena">
-            <div id="status-text" style="position:absolute; top:20px; color:var(--gold); font-size:1.3rem; font-family:Cinzel; text-shadow: 0 0 10px rgba(0,0,0,1);">WAITING</div>
+            <div id="status-text" style="position:absolute; top:20px; color:var(--gold); font-size:1.3rem; font-family:Cinzel;">WAITING</div>
             <div id="host-zone" style="display:none; z-index:100;"><button class="btn start-btn" onclick="gameStart()">START GAME</button></div>
             <div class="table"><div id="table-cards" style="display:flex;"></div></div>
         </div>
@@ -115,36 +117,103 @@
     <aside id="right-panel">
         <h3 id="room-name" style="color:var(--gold); margin:0; font-family:Cinzel; border-bottom: 1px solid #333; padding-bottom:10px;">DALMUTI</h3>
         <div id="p-list" style="margin-top:15px;"></div>
-        <div style="font-size: 0.7rem; color: #555; margin-top: 15px; text-transform: uppercase;">Chronicle</div>
         <div id="game-logs"></div>
         <input type="text" id="chat-box" placeholder="Chat here..." onkeypress="sendChat(event)">
     </aside>
 
     <script>
+        // --- 1. Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCmoc8BJt81KTfni_hA6FO8w9s_B5yTidc",
+            authDomain: "gamee-10378.firebaseapp.com",
+            projectId: "gamee-10378",
+            storageBucket: "gamee-10378.firebasestorage.app",
+            messagingSenderId: "959963691936",
+            appId: "1:959963691936:web:9efdefbcc3efb86bbec2c5",
+            measurementId: "G-3LQ3TD6XW7"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // --- 2. Game Constants & Variables ---
         const JOBS = ["", "달무티", "총리", "대주교", "세금징수원", "수습기사", "상인", "농부", "광부", "양치기", "요리사", "석공", "대장장이", "농노"];
         const MASTER_KEY = "00123";
-        let players = [], turn = 0, last = { rank: 14, count: 0, owner: -1 }, selected = [], room = null, isHost = false;
+        let players = [], turn = 0, last = { rank: 14, count: 0, owner: -1 }, selected = [], roomData = null, isHost = false;
 
-        // Init Rulebook
+        // 룰북 초기화
         const rb = document.getElementById('rule-box');
         for(let i=1; i<=13; i++) if(JOBS[i]) rb.innerHTML += `<div class="rule-item">${i}. ${JOBS[i]} (${i}장)</div>`;
 
-        // Modal Logic
+        // --- 3. UI Logic ---
         function openModal(id) { document.querySelectorAll('.overlay').forEach(o=>o.style.display='none'); document.getElementById(id).style.display='flex'; }
         function closeModals() { document.querySelectorAll('.overlay').forEach(o=>o.style.display='none'); document.getElementById('lobby-modal').style.display='flex'; }
-        function verifyMaster() { if(document.getElementById('m-pw').value === MASTER_KEY) openModal('create-modal'); else alert("WRONG PW"); }
-        function createRoom() { room = { title: document.getElementById('r-title').value || "Royal Palace", pw: document.getElementById('r-pw').value }; initGame('MULTI', true); }
-        function joinRoom() { const p = prompt("Password:"); if(p === room.pw) initGame('MULTI', false); }
-        function updateLobby() { if(room) document.getElementById('room-list-container').innerHTML = `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333;"><span>🏰 ${room.title}</span><button onclick="joinRoom()" style="color:var(--gold); background:none; border:1px solid var(--gold); cursor:pointer; padding: 2px 8px;">JOIN</button></div>`; }
+        
+        function verifyMaster() { 
+            const pw = document.getElementById('m-pw').value;
+            if(pw === MASTER_KEY) openModal('create-modal'); 
+            else { alert("WRONG MASTER PASSWORD"); document.getElementById('m-pw').value = ""; }
+        }
 
-        // Game Engine
+        // --- 4. Firestore Room Management ---
+        function createRoom() {
+            const title = document.getElementById('r-title').value || "Royal Palace";
+            const pw = document.getElementById('r-pw').value;
+            
+            const newRoom = {
+                title: title,
+                pw: pw,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                status: 'waiting'
+            };
+
+            db.collection("rooms").add(newRoom).then((docRef) => {
+                roomData = { id: docRef.id, ...newRoom };
+                initGame('MULTI', true);
+            });
+        }
+
+        // 실시간 방 목록 감시
+        db.collection("rooms").orderBy("createdAt", "desc").limit(10).onSnapshot((snapshot) => {
+            const container = document.getElementById('room-list-container');
+            if (snapshot.empty) {
+                container.innerHTML = '<p style="color:#555; padding: 10px;">No active rooms</p>';
+                return;
+            }
+            container.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                container.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #333;">
+                        <span style="color:var(--gold); font-weight:bold;">🏰 ${data.title}</span>
+                        <button onclick="joinRoom('${doc.id}', '${data.pw}')" style="color:var(--gold); background:none; border:1px solid var(--gold); cursor:pointer; padding: 4px 12px; border-radius:4px; font-family:'Cinzel';">JOIN</button>
+                    </div>`;
+            });
+        });
+
+        function joinRoom(id, correctPw) {
+            const inputPw = prompt("Enter Room Password:");
+            if(inputPw === correctPw) {
+                roomData = { id: id, title: "Joined Room" };
+                initGame('MULTI', false);
+            } else if(inputPw !== null) alert("Incorrect Password!");
+        }
+
+        // --- 5. Game Core Engine ---
         function initGame(m, h) {
-            isHost = h; document.querySelectorAll('.overlay').forEach(o=>o.style.display='none');
+            isHost = h; 
+            document.querySelectorAll('.overlay').forEach(o=>o.style.display='none');
             document.getElementById('main-game').classList.add('active');
-            document.getElementById('room-name').innerText = m === 'NPC' ? "NPC MODE" : room.title;
+            document.getElementById('room-name').innerText = m === 'NPC' ? "OFFLINE MODE" : roomData.title;
+            
             players = [{ name: isHost ? "나(방장)" : "나", cards: [], isNPC: false }];
-            if(m === 'NPC') { while(players.length < 4) players.push({ name: "NPC " + players.length, cards: [], isNPC: true }); gameStart(); }
-            else { if(isHost) document.getElementById('host-zone').style.display = 'block'; refresh(); }
+            if(m === 'NPC') {
+                while(players.length < 4) players.push({ name: "NPC " + players.length, cards: [], isNPC: true });
+                gameStart();
+            } else {
+                if(isHost) document.getElementById('host-zone').style.display = 'block';
+                log("SYSTEM", "Waiting for host to start...");
+                refresh();
+            }
         }
 
         function gameStart() {
@@ -152,6 +221,7 @@
             document.getElementById('play-btns').style.display = 'block';
             while(players.length < 4) players.push({ name: "용병 NPC " + players.length, cards: [], isNPC: true });
             
+            // 🃏 Shuffle
             let deck = []; for(let i=1; i<=12; i++) for(let j=0; j<i; j++) deck.push(i);
             for(let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
             let pIdx = 0; while(deck.length > 0) { players[pIdx % players.length].cards.push(deck.pop()); pIdx++; }
@@ -161,12 +231,10 @@
         }
 
         function refresh() {
-            // 하단 컨트롤 영역 내 턴 강조
             const playerArea = document.getElementById('player-area');
             if(turn === 0) playerArea.classList.add('my-turn');
             else playerArea.classList.remove('my-turn');
 
-            // 핸드 렌더링
             const h = document.getElementById('hand'); h.innerHTML = '';
             players[0].cards.forEach((n, i) => {
                 const c = document.createElement('div');
@@ -181,14 +249,12 @@
                 h.appendChild(c);
             });
 
-            // 플레이어 리스트 턴 강조 표시
             document.getElementById('p-list').innerHTML = players.map((p, i) => `
                 <div class="player-entry ${turn === i ? 'active-turn' : ''}">
                     <span class="turn-arrow">►</span>
                     ${p.name} <small style="float:right; opacity:0.7;">${p.cards.length}장</small>
                 </div>
             `).join('');
-            
             document.getElementById('status-text').innerText = players[turn].name + (turn === 0 ? " (당신)" : "") + "의 차례";
         }
 
@@ -208,6 +274,7 @@
             const tc = document.getElementById('table-cards'); tc.innerHTML = '';
             for(let i=0; i<count; i++) tc.innerHTML += `<div class="card played-card"><div class="center-val" style="opacity:1; font-size:2rem;">${rank}</div></div>`;
             log(p.name, `${JOBS[rank]} x${count}`);
+            
             if(p.cards.length === 0) { alert(p.name + " 승리! 왕좌를 차지했습니다."); location.reload(); }
             selected = []; turn = (turn + 1) % players.length;
             checkRound(); refresh();
@@ -221,7 +288,6 @@
             const h = players[turn].cards;
             const groups = {}; h.forEach(n => groups[n] = (groups[n] || 0) + 1);
             let targetR = -1, targetC = 0;
-
             if(last.owner === -1) {
                 const sorted = Object.keys(groups).map(Number).sort((a,b) => groups[b] - groups[a]);
                 targetR = sorted[0]; targetC = groups[targetR];
@@ -234,7 +300,6 @@
 
         function log(u, m) { const g = document.getElementById('game-logs'); g.innerHTML += `<div><b>${u}:</b> ${m}</div>`; g.scrollTop = g.scrollHeight; }
         function sendChat(e) { if(e.key==='Enter' && e.target.value.trim()){ log("나", e.target.value); e.target.value=''; } }
-        setInterval(updateLobby, 1000);
     </script>
 </body>
 </html>
