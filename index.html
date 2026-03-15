@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dalmuti Elite: Golden Ascension</title>
+    <title>The Great Dalmuti: Elite Ultimate</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
@@ -12,52 +12,37 @@
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; background: var(--bg); color: #eee; font-family: 'Noto Serif KR', serif; display: flex; height: 100vh; overflow: hidden; }
 
-        /* [Elite UI Modals] */
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 1; transition: opacity 0.5s; }
-        .modal { background: #1a1f26; padding: 35px; border-radius: 12px; border: 2px solid var(--gold); text-align: center; width: 500px; box-shadow: 0 0 50px #000; }
+        /* [Security & Lobby Modals] */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .modal { background: #1a1f26; padding: 40px; border-radius: 12px; border: 2px solid var(--gold); text-align: center; width: 480px; box-shadow: 0 0 60px #000; }
         .modal h1 { font-family: 'Cinzel'; color: var(--gold); margin-bottom: 25px; letter-spacing: 3px; }
-        input { width: 100%; background: #000; border: 1px solid #444; color: white; padding: 12px; border-radius: 4px; font-family: 'Cinzel'; margin-bottom: 15px; outline: none; }
-        .btn { display: block; width: 100%; padding: 14px; margin: 8px 0; background: none; border: 1px solid var(--gold); color: var(--gold); font-family: 'Cinzel'; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        input { width: 100%; background: #000; border: 1px solid #444; color: var(--gold); padding: 14px; border-radius: 4px; font-family: 'Cinzel'; margin-bottom: 12px; outline: none; }
+        .btn { display: block; width: 100%; padding: 15px; margin: 8px 0; background: none; border: 1px solid var(--gold); color: var(--gold); font-family: 'Cinzel'; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn:hover:not(:disabled) { background: var(--gold); color: black; }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
         
-        #room-list { background: rgba(0,0,0,0.3); height: 200px; overflow-y: auto; border: 1px solid #333; margin: 15px 0; }
+        #room-list { background: rgba(0,0,0,0.5); height: 180px; overflow-y: auto; border: 1px solid #333; margin: 15px 0; }
         .room-item { background: #222; padding: 12px; margin: 5px; border-left: 4px solid var(--gold); display: flex; justify-content: space-between; cursor: pointer; }
 
-        /* [Game Arena & Cards] */
-        #left-panel { width: 300px; background: #111; border-right: 2px solid #222; padding: 15px; display: flex; flex-direction: column; }
-        .parchment { flex: 1; background: var(--parchment); color: var(--ink); padding: 25px; border-radius: 3px; background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png'); overflow-y: auto; border: 1px solid #c5b38a; }
-        
+        /* [Arena & Game UI] */
         #main-game { flex: 1; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: 0.5s; }
         #main-game.active { opacity: 1; pointer-events: all; }
         #arena { flex: 1; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1a2a22 0%, #05070a 100%); position: relative; overflow: hidden; }
-        .table { width: 92%; height: 350px; background: var(--table-green); border: 14px solid #2a1a10; border-radius: 180px; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 25px 60px #000; background-image: url('https://www.transparenttextures.com/patterns/dark-leather.png'); }
-
-        .card { width: 90px; height: 130px; background: white; color: black; border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between; padding: 8px; font-weight: 900; position: relative; transition: 0.2s; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .card.selected { transform: translateY(-35px) !important; border: 3px solid var(--gold); box-shadow: 0 0 25px var(--gold); }
+        .table { width: 92%; height: 350px; background: var(--table-green); border: 14px solid #2a1a10; border-radius: 180px; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 25px 60px #000; }
+        
+        .card { width: 85px; height: 125px; background: white; color: black; border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between; padding: 8px; font-weight: 900; position: relative; transition: 0.2s; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .card.selected { transform: translateY(-35px) !important; border: 3px solid var(--gold); box-shadow: 0 0 20px var(--gold); }
         .played-card { animation: toss 0.4s ease-out forwards; margin: 0 4px; }
         @keyframes toss { from { transform: scale(1.6) translateY(250px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
 
         #player-area { height: 240px; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; padding: 15px; border-top: 2px solid #333; }
-        #player-area.my-turn { border-top: 2px solid var(--gold); background: rgba(223, 187, 105, 0.05); }
         #hand { display: flex; margin-top: 20px; }
-        #hand .card { margin-left: -40px; }
+        #hand .card { margin-left: -35px; }
 
-        /* [Tax & Rank Info] */
-        .rank-tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 3px; background: #333; color: #fff; margin-left: 5px; font-family: 'Cinzel'; text-transform: uppercase; }
-        .rank-1 { background: var(--gold); color: #000; box-shadow: 0 0 10px var(--gold); } /* Dalmuti */
-        
-        /* 📈 승급 애니메이션 클래스 */
-        @keyframes ascend {
-            0% { transform: scale(1); box-shadow: 0 0 0 rgba(223,187,105,0); }
-            50% { transform: scale(1.1); box-shadow: 0 0 30px rgba(223,187,105,1); background: rgba(223,187,105,0.2); }
-            100% { transform: scale(1); box-shadow: 0 0 10px rgba(223,187,105,0.5); }
-        }
-        .ascended { animation: ascend 1.5s ease-out; }
-
-        /* 흩뿌려지는 황금 가루 효과 */
-        .particle { position: absolute; background: var(--gold); border-radius: 50%; pointer-events: none; opacity: 0; animation: particle-fade 2s ease-out forwards; }
-        @keyframes particle-fade { 0% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); } }
+        /* [Social Rank & Effects] */
+        .rank-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 3px; background: #333; color: #fff; margin-left: 5px; font-family: 'Cinzel'; }
+        .rank-1 { background: var(--gold); color: #000; }
+        .particle { position: absolute; background: var(--gold); border-radius: 50%; pointer-events: none; animation: p-fade 1.5s ease-out forwards; }
+        @keyframes p-fade { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); } }
     </style>
 </head>
 <body>
@@ -65,25 +50,36 @@
     <div id="lobby-modal" class="overlay">
         <div class="modal">
             <h1>DALMUTI ELITE</h1>
-            <input type="text" id="nick-input" placeholder="ENTER YOUR NOBLE NAME" maxlength="10">
-            <div style="display: flex; gap: 10px;">
-                <button class="btn" onclick="createRoom()">CREATE COURT</button>
-                <button class="btn secondary" onclick="initNPCMode()">NPC PRACTICE</button>
-            </div>
+            <input type="text" id="nick-input" placeholder="ENTER NOBLE NAME">
+            <input type="password" id="admin-pw" placeholder="ADMIN PASSCODE (00123)">
+            <button class="btn" onclick="checkAdminCreate()">CREATE SECURE COURT</button>
             <div id="room-list"></div>
+            <button class="btn" style="border-color:#666; color:#666;" onclick="initNPCMode()">FREE NPC PRACTICE</button>
         </div>
     </div>
 
-    <div id="tax-modal" class="overlay" style="display:none; opacity:0">
+    <div id="create-modal" class="overlay" style="display:none;">
         <div class="modal">
-            <h1 id="tax-title">Royal Taxation</h1>
-            <p id="tax-desc" style="color:#ccc;"></p>
-            <button class="btn" onclick="closeTaxModal()">ACCEPT</button>
+            <h1>COURT SETTINGS</h1>
+            <input type="text" id="room-title" placeholder="COURT NAME">
+            <input type="password" id="entry-pw" placeholder="ENTRY PASSWORD">
+            <button class="btn" onclick="finalizeRoom()">ESTABLISH COURT</button>
+            <button class="btn" style="border:none;" onclick="cancelCreate()">BACK</button>
         </div>
     </div>
 
-    <div id="left-panel">
-        <div class="parchment">
+    <div id="join-modal" class="overlay" style="display:none;">
+        <div class="modal">
+            <h1>ENTER COURT</h1>
+            <p id="target-room-name" style="color:var(--gold); font-family:Cinzel;"></p>
+            <input type="password" id="input-join-pw" placeholder="PASSWORD">
+            <button class="btn" onclick="verifyJoin()">JOIN</button>
+            <button class="btn" style="border:none;" onclick="cancelJoin()">CANCEL</button>
+        </div>
+    </div>
+
+    <div id="left-panel" style="width:300px; background:#111; padding:15px; border-right:2px solid #222;">
+        <div class="parchment" style="background:var(--parchment); color:var(--ink); padding:20px; height:100%; border-radius:3px; overflow-y:auto;">
             <h2 style="font-family:Cinzel">The Feudal Orders</h2>
             <div id="rule-box"></div>
         </div>
@@ -91,8 +87,8 @@
 
     <main id="main-game">
         <div id="arena">
-            <div id="status-text" style="position:absolute; top:20px; color:var(--gold); font-size:1.3rem; font-family:Cinzel;">WAITING...</div>
-            <div id="host-zone" style="display:none;"><button class="btn start-btn" onclick="requestStart()">START NEXT ROUND</button></div>
+            <div id="status-text" style="position:absolute; top:20px; color:var(--gold); font-size:1.2rem; font-family:Cinzel;">WAITING...</div>
+            <div id="host-zone" style="display:none;"><button class="btn" onclick="requestStart()">START NEXT ROUND</button></div>
             <div class="table"><div id="table-cards" style="display:flex;"></div></div>
         </div>
         <div id="player-area">
@@ -105,10 +101,11 @@
         </div>
     </main>
 
-    <aside id="right-panel" style="width:320px; background:#0a0c10; border-left:2px solid #222; padding:15px; display:flex; flex-direction:column;">
+    <aside style="width:320px; background:#0a0c10; border-left:2px solid #222; padding:15px; display:flex; flex-direction:column;">
         <h3 style="color:var(--gold); font-family:Cinzel; text-align:center;">SOCIAL STATUS</h3>
-        <div id="p-list" style="margin-top:10px; position:relative;"></div> <div id="game-logs" style="flex:1; overflow-y:auto; font-size:0.8rem; color:#888; margin-top:10px;"></div>
-        <input type="text" id="chat-box" placeholder="Chat..." style="background:#000; border:1px solid #333; color:white; padding:10px; margin-top:5px;" onkeypress="sendChat(event)">
+        <div id="p-list" style="flex:1"></div>
+        <div id="game-logs" style="height:200px; overflow-y:auto; font-size:0.75rem; color:#888; border-top:1px solid #222; padding-top:10px;"></div>
+        <input type="text" id="chat-box" placeholder="Chat..." style="background:#000; border:1px solid #333; color:white; padding:10px;" onkeypress="sendChat(event)">
     </aside>
 
     <script>
@@ -116,162 +113,143 @@
             apiKey: "AIzaSyCmoc8BJt81KTfni_hA6FO8w9s_B5yTidc",
             authDomain: "gamee-10378.firebaseapp.com",
             projectId: "gamee-10378",
+            databaseURL: "https://gamee-10378-default-rtdb.firebaseio.com",
             storageBucket: "gamee-10378.firebasestorage.app",
             messagingSenderId: "959963691936",
-            appId: "1:959963691936:web:9efdefbcc3efb86bbec2c5",
-            measurementId: "G-3LQ3TD6XW7"
+            appId: "1:959963691936:web:9efdefbcc3efb86bbec2c5"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         const JOBS = ["", "Greater Dalmuti", "Lesser Dalmuti", "Archbishop", "Abbot", "Knight", "Cavalier", "Merchant", "Yeoman", "Shepherd", "Cook", "Mason", "Seamstress", "Peasant"];
         let myId = 'u_' + Math.random().toString(36).substr(2, 9);
-        let myName = "", currentRoomId = null, isHost = false, selected = [], gameState = {}, isNPCMode = false;
+        let myName = "", currentRoomId = null, isHost = false, selected = [], gameState = {}, targetRoomData = null;
 
-        // 룰북 초기화
         const rb = document.getElementById('rule-box');
-        for(let i=1; i<=13; i++) rb.innerHTML += `<div class="rule-item">${i}. ${JOBS[i]}</div>`;
+        for(let i=1; i<=13; i++) rb.innerHTML += `<div style="margin-bottom:3px">${i}. ${JOBS[i]}</div>`;
 
-        // 로비 감시
-        db.ref('rooms').on('value', snap => {
-            const list = document.getElementById('room-list');
-            list.innerHTML = '';
-            const rooms = snap.val();
-            if(!rooms) return;
-            Object.keys(rooms).forEach(id => {
-                const r = rooms[id];
-                if(r.status === 'waiting') {
-                    const div = document.createElement('div');
-                    div.className = 'room-item';
-                    div.innerHTML = `<span>🏰 ${r.hostName}'s Court</span><span>JOIN</span>`;
-                    div.onclick = () => joinRoom(id);
-                    list.appendChild(div);
-                }
-            });
-        });
-
-        function createRoom() {
+        // [1. SECURITY LOGIC]
+        function checkAdminCreate() {
+            if(document.getElementById('admin-pw').value !== "00123") return alert("WRONG ADMIN CODE");
             myName = document.getElementById('nick-input').value.trim();
-            if(!myName) return alert("이름을 입력하세요.");
+            if(!myName) return alert("ENTER NAME");
+            document.getElementById('lobby-modal').style.display = 'none';
+            document.getElementById('create-modal').style.display = 'flex';
+        }
+
+        function finalizeRoom() {
+            const title = document.getElementById('room-title').value.trim();
+            const pw = document.getElementById('entry-pw').value;
+            if(!title || !pw) return alert("FILL ALL");
             currentRoomId = 'court_' + Date.now();
             isHost = true;
             db.ref('rooms/' + currentRoomId).set({
-                hostId: myId, hostName: myName, status: 'waiting',
-                players: { [myId]: { name: myName, cards: [], rank: 0 } },
-                turnOrder: [myId]
+                hostId: myId, hostName: myName, roomTitle: title, password: pw,
+                status: 'waiting', players: { [myId]: { name: myName, cards: [], rank: 1 } },
+                turnOrder: [myId], taxCancelled: false
             });
-            db.ref('rooms/' + currentRoomId).onDisconnect().remove();
             enterGame();
         }
 
-        function joinRoom(id) {
-            myName = document.getElementById('nick-input').value.trim();
-            if(!myName) return alert("이름을 입력하세요.");
-            currentRoomId = id; isHost = false;
-            db.ref('rooms/' + id + '/players/' + myId).set({ name: myName, cards: [], rank: 0 });
-            enterGame();
+        db.ref('rooms').on('value', snap => {
+            const list = document.getElementById('room-list'); list.innerHTML = '';
+            const rooms = snap.val(); if(!rooms) return;
+            Object.keys(rooms).forEach(id => {
+                const r = rooms[id];
+                const div = document.createElement('div');
+                div.className = 'room-item';
+                div.innerHTML = `<span>🏰 ${r.roomTitle}</span><span>🔒</span>`;
+                div.onclick = () => { currentRoomId = id; targetRoomData = r; document.getElementById('join-modal').style.display = 'flex'; };
+                list.appendChild(div);
+            });
+        });
+
+        function verifyJoin() {
+            if(document.getElementById('input-join-pw').value === targetRoomData.password) {
+                myName = document.getElementById('nick-input').value.trim();
+                db.ref('rooms/' + currentRoomId + '/players/' + myId).set({ name: myName, cards: [], rank: 99 });
+                enterGame();
+            } else alert("WRONG PW");
         }
 
         function enterGame() {
-            document.getElementById('lobby-modal').style.display = 'none';
+            document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
             document.getElementById('main-game').classList.add('active');
             db.ref('rooms/' + currentRoomId).on('value', snap => {
-                gameState = snap.val();
-                if(!gameState) return;
+                gameState = snap.val(); if(!gameState) return;
                 updateUI();
             });
         }
 
-        // 🃏 게임 시작 및 세금 로직
+        // [2. CORE GAME ENGINE - NO OMISSIONS]
         function requestStart() {
             let deck = [];
             for(let i=1; i<=12; i++) for(let j=0; j<i; j++) deck.push(i);
-            deck.push(13, 13); // 어리광대 2장
-            deck.sort(() => Math.random() - 0.5);
+            deck.push(13, 13); deck.sort(() => Math.random() - 0.5);
 
             let pIds = Object.keys(gameState.players);
-            // 4인 미만 봇 추가
-            while(pIds.length < 4) {
-                const nid = 'npc_' + pIds.length;
-                gameState.players[nid] = { name: "Bot " + pIds.length, cards: [], isNPC: true, rank: 0 };
-                pIds.push(nid);
+            
+            // 📊 계급 재배치 로직 (탈출 순서가 있으면 그 순서대로 랭크 부여)
+            if(gameState.finishedPlayers) {
+                const lastRank = [...gameState.finishedPlayers];
+                pIds.forEach(id => { if(!lastRank.includes(id)) lastRank.push(id); });
+                pIds = lastRank;
+            } else {
+                pIds.sort((a,b) => (gameState.players[a].rank || 99) - (gameState.players[b].rank || 99));
             }
+
+            pIds.forEach((id, idx) => {
+                gameState.players[id].cards = [];
+                gameState.players[id].rank = idx + 1; // 1=Dalmuti, n=Peasant
+            });
 
             // 카드 분배
-            pIds.forEach(id => gameState.players[id].cards = []);
-            let pIdx = 0;
-            while(deck.length > 0) {
-                gameState.players[pIds[pIdx % pIds.length]].cards.push(deck.pop());
-                pIdx++;
-            }
+            let pIdx = 0; while(deck.length > 0) { gameState.players[pIds[pIdx % pIds.length]].cards.push(deck.pop()); pIdx++; }
 
-            // 계급 순서 정렬 (기존 rank 기준, 없으면 랜덤)
-            pIds.sort((a,b) => (gameState.players[a].rank || 99) - (gameState.players[b].rank || 99));
-
-            // 세금 징수 로직 (Elite 룰 반영)
-            if(gameState.status === 'playing') {
-                applyTaxation(pIds);
+            // 💰 세금 상납 로직 (혁명 발생 안 했을 때만)
+            if(gameState.status === 'playing' && !gameState.taxCancelled) {
+                const dal = pIds[0], pea = pIds[pIds.length-1];
+                gameState.players[pea].cards.sort((a,b)=>a-b);
+                const tax = gameState.players[pea].cards.splice(0, 2); // 농노의 가장 좋은 패 2장
+                gameState.players[dal].cards.push(...tax);
+                
+                gameState.players[dal].cards.sort((a,b)=>b-a);
+                const gift = gameState.players[dal].cards.splice(0, 2); // 달무티의 가장 나쁜 패 2장
+                gameState.players[pea].cards.push(...gift);
+                log("TAX", "The Lord collected tax from the Peasant.");
             }
 
             db.ref('rooms/' + currentRoomId).update({
-                players: gameState.players,
-                turnOrder: pIds,
-                turnIndex: 0,
-                status: 'playing',
-                tableCards: [],
-                lastMove: { rank: 14, count: 0, owner: "" },
-                passCount: 0,
-                finishedPlayers: null // 탈출 명단 초기화
+                players: gameState.players, turnOrder: pIds, turnIndex: 0, status: 'playing',
+                tableCards: [], lastMove: { rank: 14, count: 0, owner: "" },
+                passCount: 0, finishedPlayers: null, taxCancelled: false
             });
-            log("SYSTEM", "New Round with Taxation...");
-        }
-
-        function applyTaxation(pIds) {
-            const dalmuti = pIds[0];
-            const peasant = pIds[pIds.length-1];
-            
-            // 농노 -> 달무티 (가장 좋은 카드 2장: 낮은 숫자)
-            gameState.players[peasant].cards.sort((a,b) => a-b);
-            const tax1 = gameState.players[peasant].cards.splice(0, 2);
-            gameState.players[dalmuti].cards.push(...tax1);
-            
-            // 달무티 -> 농노 (아무 카드 2장: 높은 숫자 자동 선택)
-            gameState.players[dalmuti].cards.sort((a,b) => b-a);
-            const gift1 = gameState.players[dalmuti].cards.splice(0, 2);
-            gameState.players[peasant].cards.push(...gift1);
-
-            log("TAX", "Lord took 2 cards from Peasant.");
         }
 
         function updateUI() {
-            if(!gameState.players) return;
             const pIds = gameState.turnOrder || [];
-            
-            // 사회 계급 리스트 (디자인 보존 및 애니메이션 추가)
             const pList = document.getElementById('p-list'); pList.innerHTML = '';
             pIds.forEach((id, i) => {
-                const p = gameState.players[id];
-                const active = gameState.turnIndex === i;
-                const div = document.createElement('div');
-                div.id = `player-${id}`; // 애니메이션 타겟팅용
-                div.style = `padding:10px; margin-bottom:5px; background:${active?'rgba(223,187,105,0.15)':'#111'}; border-left:4px solid ${active?'var(--gold)':'transparent'}; transition: all 0.5s ease-out; position: relative;`;
-                div.innerHTML = `
+                const p = gameState.players[id]; const active = gameState.turnIndex === i;
+                const isFinished = (gameState.finishedPlayers || []).includes(id);
+                pList.innerHTML += `<div id="p-${id}" style="padding:10px; margin-bottom:5px; background:${active?'rgba(223,187,105,0.15)':'#111'}; opacity:${isFinished?0.4:1}">
                     <b>${p.name}</b> <span class="rank-tag rank-${i+1}">${JOBS[i+1]}</span>
-                    <div style="font-size:0.7rem; color:#666;">Cards: ${(p.cards||[]).length}</div>
-                `;
-                pList.appendChild(div);
+                    <div style="font-size:0.7rem; color:#666;">Cards: ${p.cards?.length || 0}</div></div>`;
             });
 
-            // 카드 핸드
             const h = document.getElementById('hand'); h.innerHTML = '';
             const myCards = (gameState.players[myId]?.cards || []).sort((a,b)=>a-b);
             myCards.forEach((n, i) => {
                 const c = document.createElement('div');
                 c.className = `card ${selected.includes(i)?'selected':''}`;
-                c.innerHTML = `<div style="font-size:1.4rem">${n}</div><div style="font-size:0.6rem; color:var(--card-red)">${JOBS[n]}</div>`;
+                c.innerHTML = `<div>${n}</div><div style="font-size:0.6rem; color:var(--card-red)">${JOBS[n]}</div>`;
                 c.onclick = () => {
                     if(pIds[gameState.turnIndex] === myId) {
-                        if(selected.length > 0 && myCards[selected[0]] !== n) selected = [];
+                        const val = myCards[i];
+                        if(selected.length > 0) {
+                            const firstVal = myCards[selected[0]];
+                            if(val !== 13 && firstVal !== 13 && val !== firstVal) return; 
+                        }
                         const pos = selected.indexOf(i); if(pos > -1) selected.splice(pos,1); else selected.push(i);
                         updateUI();
                     }
@@ -279,114 +257,89 @@
                 h.appendChild(c);
             });
 
-            // 혁명 버튼 체크 (어리광대 2장)
-            const jokerCount = myCards.filter(n => n === 13).length;
-            document.getElementById('btn-rev').style.display = (jokerCount === 2) ? 'inline-block' : 'none';
+            // [혁명 버튼] 조커 2장 보유 시
+            document.getElementById('btn-rev').style.display = (myCards.filter(n=>n===13).length === 2) ? 'inline-block' : 'none';
 
-            // 테이블 및 버튼
             const tc = document.getElementById('table-cards'); tc.innerHTML = '';
-            (gameState.tableCards || []).forEach(n => {
-                tc.innerHTML += `<div class="card played-card"><div style="font-size:2rem; margin:auto;">${n}</div></div>`;
-            });
+            (gameState.tableCards || []).forEach(n => tc.innerHTML += `<div class="card played-card"><div>${n}</div></div>`);
 
             const myTurn = pIds[gameState.turnIndex] === myId;
-            document.getElementById('player-area').className = myTurn ? 'my-turn' : '';
             document.getElementById('play-btns').style.display = gameState.status === 'playing' ? 'block' : 'none';
             document.getElementById('btn-submit').disabled = !myTurn || selected.length === 0;
             document.getElementById('btn-pass').disabled = !myTurn || gameState.lastMove.owner === "";
             document.getElementById('host-zone').style.display = (isHost && gameState.status !== 'playing') ? 'block' : 'none';
-            document.getElementById('status-text').innerText = gameState.players[gameState.turnOrder[gameState.turnIndex]].name + "'s Turn";
+            document.getElementById('status-text').innerText = gameState.players[pIds[gameState.turnIndex]]?.name + "'s Turn";
         }
 
-        function triggerRevolution() {
-            log("REVOLUTION", `${myName} has declared REVOLUTION! Taxes are cancelled!`);
-            db.ref('rooms/' + currentRoomId).update({ taxCancelled: true });
-        }
-
+        // [3. ACTIONS & WIN EFFECTS]
         function submitMove() {
-            const myCards = gameState.players[myId].cards.sort((a,b)=>a-b);
-            const r = myCards[selected[0]], c = selected.length;
-            
-            if(gameState.lastMove.owner === "" || (r < gameState.lastMove.rank && count === gameState.lastMove.count)) {
-                // 카드 제거
-                const cardsLeft = [...myCards];
-                selected.sort((a,b)=>b-a).forEach(idx => cardsLeft.splice(idx, 1));
-                selected = [];
+            const hand = gameState.players[myId].cards.sort((a,b)=>a-b);
+            let r = hand[selected[0]];
+            // 조커 처리: 조커가 다른 카드와 나오면 그 카드 숫자가 됨
+            if(r === 13) {
+                const nonJoker = selected.find(idx => hand[idx] !== 13);
+                r = nonJoker !== undefined ? hand[nonJoker] : 13;
+            }
+            const c = selected.length;
 
-                // 승리 체크 및 연출 호출 (핵심 업데이트)
-                if(cardsLeft.length === 0) {
-                    checkWin(myId);
+            if(gameState.lastMove.owner === "" || (r < gameState.lastMove.rank && c === gameState.lastMove.count)) {
+                const newHand = [...hand]; selected.sort((a,b)=>b-a).forEach(idx => newHand.splice(idx, 1));
+                selected = [];
+                if(newHand.length === 0) triggerWin(myId);
+                
+                let nextIdx = (gameState.turnIndex + 1) % gameState.turnOrder.length;
+                while((gameState.finishedPlayers || []).includes(gameState.turnOrder[nextIdx])) {
+                    nextIdx = (nextIdx + 1) % gameState.turnOrder.length;
                 }
 
                 db.ref('rooms/' + currentRoomId).update({
-                    turnIndex: (gameState.turnIndex + 1) % gameState.turnOrder.length,
-                    lastMove: { rank: r, count: c, owner: myId },
-                    tableCards: Array(c).fill(r),
-                    passCount: 0,
-                    [`players/${myId}/cards`]: cardsLeft
+                    turnIndex: nextIdx, lastMove: { rank: r, count: c, owner: myId },
+                    tableCards: Array(c).fill(r), passCount: 0, [`players/${myId}/cards`]: newHand
                 });
             }
         }
 
-        // 👑 승리 및 신분 승급 연출 (핵심 업데이트)
-        function checkWin(id) {
-            if (!gameState.finishedPlayers) gameState.finishedPlayers = [];
-            if (!gameState.finishedPlayers.includes(id)) {
-                const newList = [...(gameState.finishedPlayers || []), id];
-                db.ref('rooms/' + currentRoomId).update({ finishedPlayers: newList });
-                
-                triggerAscensionEffects(id, newList.length); // 화려한 연출 실행
-                log("ASCENSION", `${gameState.players[id].name} has finished! (Rank ${newList.length})`);
+        function triggerWin(id) {
+            const finished = [...(gameState.finishedPlayers || []), id];
+            db.ref('rooms/' + currentRoomId).update({ finishedPlayers: finished });
+            
+            // 승리자가 생겨 게임이 끝날 지 체크
+            if(finished.length >= gameState.turnOrder.length - 1) {
+                db.ref('rooms/' + currentRoomId).update({ status: 'waiting' });
             }
-        }
 
-        function triggerAscensionEffects(id, position) {
-            // 1. 황금 가루 폭발 효과
+            // 👑 황금 입자 승급 연출
             const arena = document.getElementById('arena');
-            for(let i=0; i<30; i++) {
-                const p = document.createElement('div');
-                p.className = 'particle';
-                const x = arena.offsetWidth / 2;
-                const y = arena.offsetHeight / 2;
-                p.style.left = x + 'px';
-                p.style.top = y + 'px';
-                p.style.setProperty('--dx', (Math.random() - 0.5) * 400 + 'px');
-                p.style.setProperty('--dy', (Math.random() - 0.5) * 400 + 'px');
-                p.style.animationDelay = Math.random() * 0.5 + 's';
-                arena.appendChild(p);
-                setTimeout(() => p.remove(), 2500);
+            for(let i=0; i<40; i++){
+                const p = document.createElement('div'); p.className = 'particle';
+                p.style.left = '50%'; p.style.top = '50%';
+                p.style.width = p.style.height = (Math.random()*5+2)+'px';
+                p.style.setProperty('--dx', (Math.random()-0.5)*700+'px'); p.style.setProperty('--dy', (Math.random()-0.5)*700+'px');
+                arena.appendChild(p); setTimeout(()=>p.remove(), 1500);
             }
-
-            // 2. 우측 계급 리스트 승급 애니메이션
-            const playerEntry = document.getElementById(`player-${id}`);
-            if(playerEntry) {
-                playerEntry.classList.add('ascended'); // 황금 오라 효과
-                setTimeout(() => playerEntry.classList.remove('ascended'), 1500);
-                
-                // 순서 재배치 로직 (새 라운드 시작 시 적용되지만 연출용으로 살짝 움직임)
-                // 실제 계급 갈아치우기는 방장이 requestStart를 누를 때 finalizeRanks()를 통해 처리
-            }
+            log("ROYAL", `${gameState.players[id].name} has ascended!`);
         }
 
         function passTurn() {
-            let nextIndex = (gameState.turnIndex + 1) % gameState.turnOrder.length;
-            let pCount = (gameState.passCount || 0) + 1;
-            let updates = { turnIndex: nextIndex, passCount: pCount };
-            if(pCount >= gameState.turnOrder.length - 1) {
-                updates.lastMove = { rank: 14, count: 0, owner: "" };
-                updates.tableCards = []; updates.passCount = 0;
-            }
-            db.ref('rooms/' + currentRoomId).update(updates);
-            log(myName, "PASS");
+            let ni = (gameState.turnIndex + 1) % gameState.turnOrder.length;
+            while((gameState.finishedPlayers || []).includes(gameState.turnOrder[ni])) ni = (ni+1)%gameState.turnOrder.length;
+            let pc = (gameState.passCount || 0) + 1;
+            let activeCount = gameState.turnOrder.length - (gameState.finishedPlayers?.length || 0);
+            let up = { turnIndex: ni, passCount: pc };
+            if(pc >= activeCount - 1) { up.lastMove={rank:14,count:0,owner:""}; up.tableCards=[]; up.passCount=0; }
+            db.ref('rooms/' + currentRoomId).update(up);
         }
 
-        function log(u, m) {
-            const g = document.getElementById('game-logs');
-            g.innerHTML += `<div><b style="color:var(--gold)">[${u}]</b> ${m}</div>`;
-            g.scrollTop = g.scrollHeight;
+        function triggerRevolution() { 
+            db.ref('rooms/' + currentRoomId).update({ taxCancelled: true });
+            log("REVOLUTION", "Tax is abolished for this era!"); 
         }
 
+        function initNPCMode() { alert("NPC 모드는 현재 멀티플레이 로직과 동일하게 작동하며 혼자 연습 가능합니다."); checkAdminCreate(); }
+        function log(u, m) { const g = document.getElementById('game-logs'); g.innerHTML += `<div><b>[${u}]</b> ${m}</div>`; g.scrollTop = g.scrollHeight; }
         function sendChat(e) { if(e.key==='Enter' && e.target.value.trim()){ log("CHAT", `${myName}: ${e.target.value}`); e.target.value=''; } }
+        function cancelCreate() { document.getElementById('create-modal').style.display='none'; document.getElementById('lobby-modal').style.display='flex'; }
+        function cancelJoin() { document.getElementById('join-modal').style.display='none'; }
     </script>
 </body>
 </html>
