@@ -3,450 +3,441 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Great Dalmuti: Elite Ultimate Edition</title>
+    <title>DALMUTI: The Feudal Era</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Serif+KR:wght@400;700&display=swap');
         
         :root { 
-            --gold: #dfbb69; --gold-bright: #ffedbc; --parchment: #f4e4bc; 
-            --table-green: #1a3c2a; --bg: #0a0c10; --card-red: #d32f2f; 
-            --ink: #2c1810; --danger: #ff4444;
+            --gold: #c5a059; --gold-light: #f1d392; --accent: #ffd700;
+            --bg-dark: #0f1115; --panel-bg: #1a1d23;
+            --card-white: #fdfdfd; --card-border: #2c1810;
+            --danger: #e74c3c; --success: #2ecc71;
         }
 
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; background: var(--bg); color: #eee; font-family: 'Noto Serif KR', serif; display: flex; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; outline: none; }
+        body { 
+            margin: 0; padding: 0; background: var(--bg-dark); color: #e0e0e0; 
+            font-family: 'Noto Serif KR', serif; display: flex; height: 100vh; overflow: hidden; 
+        }
 
-        /* [Security & Lobby Modals] */
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .modal { background: #1a1f26; padding: 40px; border-radius: 15px; border: 2px solid var(--gold); text-align: center; width: 550px; box-shadow: 0 0 80px #000; }
-        .modal h1 { font-family: 'Cinzel'; color: var(--gold); margin-bottom: 20px; letter-spacing: 5px; font-size: 2.2rem; }
+        /* [Modern Glassmorphism Overlay] */
+        .overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
+            z-index: 1000; display: flex; align-items: center; justify-content: center; 
+            backdrop-filter: blur(15px); transition: 0.5s;
+        }
+        .modal { 
+            background: linear-gradient(145deg, #1e2229, #15181d);
+            padding: 40px; border-radius: 20px; border: 1px solid rgba(197, 160, 89, 0.3);
+            text-align: center; width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .modal h1 { 
+            font-family: 'Cinzel'; color: var(--gold); margin-bottom: 30px; 
+            letter-spacing: 6px; font-size: 2.8rem; text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
 
-        input { width: 100%; background: #000; border: 1px solid #444; color: var(--gold); padding: 15px; border-radius: 6px; margin-bottom: 12px; outline: none; font-size: 1rem; }
-        input:focus { border-color: var(--gold); }
+        /* [Input & Button Styles] */
+        input { 
+            width: 100%; background: rgba(0,0,0,0.4); border: 1px solid #3d4451; 
+            color: var(--gold-light); padding: 15px; border-radius: 10px; margin-bottom: 15px;
+            font-size: 1rem; transition: 0.3s;
+        }
+        input:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(197, 160, 89, 0.2); }
 
-        .btn { display: block; width: 100%; padding: 16px; margin: 8px 0; background: none; border: 1px solid var(--gold); color: var(--gold); font-family: 'Cinzel'; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn:hover:not(:disabled) { background: var(--gold); color: black; }
-        .btn-danger { border-color: var(--danger); color: var(--danger); }
-        .btn-danger:hover { background: var(--danger); color: white; }
+        .btn-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { 
+            flex: 1; padding: 12px; border: 1px solid #3d4451; background: transparent; 
+            color: #888; cursor: pointer; border-radius: 8px; font-family: 'Cinzel'; transition: 0.3s;
+        }
+        .tab-btn.active { background: var(--gold); color: #000; border-color: var(--gold); font-weight: bold; }
 
-        .tab-container { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab { flex: 1; padding: 10px; background: #222; cursor: pointer; border: 1px solid #444; color: #888; }
-        .tab.active { background: var(--gold); color: black; border-color: var(--gold); font-weight: bold; }
+        .primary-btn { 
+            width: 100%; padding: 16px; background: var(--gold); border: none; 
+            color: #000; font-family: 'Cinzel'; font-weight: 900; cursor: pointer; 
+            border-radius: 10px; font-size: 1.1rem; letter-spacing: 2px; transition: 0.3s;
+        }
+        .primary-btn:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
-        #room-list { background: rgba(0,0,0,0.6); height: 200px; overflow-y: auto; border: 1px solid #333; margin-bottom: 15px; border-radius: 8px; }
-        .room-item { background: #222; padding: 12px; margin: 8px; border-left: 5px solid var(--gold); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        /* [Room List] */
+        #room-list { height: 180px; overflow-y: auto; margin: 15px 0; padding: 5px; }
+        .room-card { 
+            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; cursor: pointer; border: 1px solid transparent; transition: 0.2s;
+        }
+        .room-card:hover { border-color: var(--gold); background: rgba(197, 160, 89, 0.1); }
 
-        /* [Game Arena & UI] */
-        #main-game { flex: 1; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: 0.8s; }
-        #main-game.active { opacity: 1; pointer-events: all; }
-        #arena { flex: 1; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1a2a22 0%, #05070a 100%); position: relative; }
+        /* [Game Arena & Layout] */
+        #left-panel { width: 320px; background: var(--panel-bg); border-right: 1px solid #2d343e; padding: 20px; display: flex; flex-direction: column; }
+        #arena { flex: 1; background: radial-gradient(circle at center, #1e3a2e 0%, #0a0c10 100%); position: relative; }
+        .table-rim { 
+            width: 85%; height: 380px; border: 12px solid #2a1a10; border-radius: 200px;
+            background: #143324; display: flex; align-items: center; justify-content: center;
+            box-shadow: inset 0 0 100px #000, 0 20px 40px rgba(0,0,0,0.6);
+        }
 
-        .table { width: 90%; height: 350px; background: var(--table-green); border: 15px solid #2a1a10; border-radius: 180px; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: inset 0 0 50px #000; }
-        
-        /* [Card Styling] */
-        .card { width: 85px; height: 125px; background: white; color: black; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; padding: 8px; font-weight: 900; position: relative; transition: 0.3s; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .card.selected { transform: translateY(-35px) !important; border: 3px solid var(--gold); box-shadow: 0 0 20px var(--gold); }
-        .played-card { animation: toss 0.5s forwards; margin: 0 5px; }
-        @keyframes toss { from { transform: scale(2) translateY(300px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        /* [Card Design] */
+        .card { 
+            width: 85px; height: 125px; background: var(--card-white); border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4); display: flex; flex-direction: column;
+            justify-content: space-between; padding: 10px; cursor: pointer; transition: 0.3s cubic-bezier(.25,.8,.25,1);
+            border: 1px solid #ddd; position: relative;
+        }
+        .card .val { font-size: 1.4rem; font-weight: 900; color: #1a1a1a; font-family: 'Cinzel'; }
+        .card .title { font-size: 0.6rem; color: var(--danger); font-weight: bold; text-align: center; }
+        .card.selected { transform: translateY(-30px); border: 3px solid var(--accent); box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4); }
+        .played-card { animation: cardEnter 0.5s ease-out forwards; margin: 0 5px; }
+        @keyframes cardEnter { from { opacity: 0; transform: scale(1.5) translateY(200px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-        #player-area { height: 250px; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; padding: 15px; border-top: 3px solid #333; }
-        #hand { display: flex; margin-top: 20px; }
+        /* [Player UI] */
+        #player-dock { 
+            height: 260px; background: #111418; border-top: 2px solid #2d343e;
+            display: flex; flex-direction: column; align-items: center; padding: 20px;
+        }
+        #hand { display: flex; justify-content: center; margin-top: 30px; height: 130px; }
         #hand .card { margin-left: -40px; }
         #hand .card:first-child { margin-left: 0; }
 
-        #left-panel { width: 300px; background: #0c0e12; border-right: 2px solid #222; display: flex; flex-direction: column; }
-        .parchment { background: var(--parchment); color: var(--ink); margin: 15px; padding: 20px; flex: 1; border-radius: 3px; overflow-y: auto; }
-        #right-panel { width: 320px; background: #0a0c10; border-left: 2px solid #222; padding: 15px; display: flex; flex-direction: column; }
-        #p-list { flex: 1; overflow-y: auto; }
-        #game-logs { height: 180px; background: #000; font-size: 0.8rem; color: #888; padding: 10px; border: 1px solid #222; margin-bottom: 10px; overflow-y: auto; }
+        .rank-badge { 
+            font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; 
+            background: #333; color: #fff; text-transform: uppercase; font-family: 'Cinzel';
+        }
+        .rank-gold { background: linear-gradient(to bottom, #d4af37, #aa841e); color: #000; font-weight: bold; }
 
-        .rank-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 3px; background: #444; color: #fff; margin-left: 5px; font-family: 'Cinzel'; }
-        .rank-1 { background: var(--gold); color: #000; }
+        #right-panel { width: 340px; background: var(--panel-bg); border-left: 1px solid #2d343e; padding: 20px; display: flex; flex-direction: column; }
+        #log-box { flex: 1; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 15px; overflow-y: auto; font-size: 0.85rem; color: #aaa; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <div id="lobby-modal" class="overlay">
+    <div id="lobby-screen" class="overlay">
         <div class="modal">
-            <h1>THE DALMUTI</h1>
-            <input type="text" id="nick-input" placeholder="이름을 입력하세요">
-            <input type="password" id="admin-pw" placeholder="방장 전용 생성 암호 (00123)">
+            <h1>DALMUTI</h1>
+            <input type="text" id="user-name" placeholder="귀족의 성함을 입력하세요">
+            <input type="password" id="admin-key" placeholder="방장 생성 코드 (00123)">
             
-            <div class="tab-container">
-                <div class="tab active" id="tab-multi" onclick="switchTab('multi')">다인용 성 목록</div>
-                <div class="tab" id="tab-npc" onclick="switchTab('npc')">NPC 연습장</div>
+            <div class="btn-group">
+                <button class="tab-btn active" id="tab-multi" onclick="setTab('multi')">성 목록</button>
+                <button class="tab-btn" id="tab-npc" onclick="setTab('npc')">NPC 대전</button>
             </div>
 
             <div id="room-list"></div>
 
-            <button class="btn" id="create-btn" onclick="checkAdminCreate()">새로운 성 건설하기 (방장 전용)</button>
+            <button class="primary-btn" id="create-trigger" onclick="openCreateModal()">새로운 성 건설하기</button>
         </div>
     </div>
 
-    <div id="create-modal" class="overlay" style="display:none;">
+    <div id="create-screen" class="overlay" style="display:none;">
         <div class="modal">
-            <h1>성 건설 (방 만들기)</h1>
-            <input type="text" id="room-title" placeholder="성의 이름 (방 제목)">
-            <input type="password" id="entry-pw" placeholder="성문 비밀번호 (비밀번호 가려짐)">
-            <button class="btn" onclick="finalizeRoom()">건설 승인</button>
-            <button class="btn" style="border:none;" onclick="cancelCreate()">취소</button>
+            <h1>NEW COURT</h1>
+            <input type="text" id="new-room-name" placeholder="성의 명칭 (예: 태양의 궁전)">
+            <input type="password" id="new-room-pw" placeholder="비밀번호 설정 (가려짐)">
+            <button class="primary-btn" onclick="confirmCreate()">건설 완료</button>
+            <button class="tab-btn" style="margin-top:10px; border:none;" onclick="closeModals()">취소</button>
         </div>
     </div>
 
-    <div id="join-modal" class="overlay" style="display:none;">
+    <div id="join-screen" class="overlay" style="display:none;">
         <div class="modal">
-            <h1>성문 입장</h1>
-            <p id="target-room-name" style="color:var(--gold); font-size: 1.2rem;"></p>
-            <input type="password" id="input-join-pw" placeholder="비밀번호를 입력하세요 (가려짐)">
-            <button class="btn" onclick="verifyJoin()">입장</button>
-            <button class="btn" style="border:none;" onclick="cancelJoin()">취소</button>
+            <h1>ENTER GATE</h1>
+            <p id="join-target-desc" style="color:var(--gold);"></p>
+            <input type="password" id="join-pw-input" placeholder="비밀번호를 입력하세요">
+            <button class="primary-btn" onclick="confirmJoin()">입장하기</button>
+            <button class="tab-btn" style="margin-top:10px; border:none;" onclick="closeModals()">취소</button>
         </div>
     </div>
 
     <div id="left-panel">
-        <div class="parchment">
-            <h2 style="font-family:Cinzel; border-bottom:1px solid #000;">계급도</h2>
-            <div id="rule-box" style="font-size:0.9rem; line-height:1.6;"></div>
+        <div style="background:#f4e4bc; color:#2c1810; padding:20px; border-radius:10px; flex:1; overflow-y:auto; box-shadow: inset 0 0 20px rgba(0,0,0,0.1);">
+            <h2 style="font-family:Cinzel; border-bottom:2px solid #2c1810; padding-bottom:10px;">Hierarchy</h2>
+            <div id="hierarchy-list" style="font-size:0.9rem; line-height:1.8;"></div>
         </div>
-        <div style="padding: 15px;">
-            <button class="btn btn-danger" onclick="leaveRoom()">성에서 탈출하기</button>
-            <button id="host-destroy-btn" class="btn btn-danger" style="display:none; background:#400;" onclick="destroyRoom()">성 파괴 (방장)</button>
-        </div>
+        <button class="primary-btn" style="margin-top:15px; background:var(--danger); color:white;" onclick="exitGame()">항복 및 탈출</button>
+        <button id="admin-destroy-btn" class="primary-btn" style="margin-top:10px; background:#444; display:none;" onclick="destroyCourt()">성 파괴 (방장)</button>
     </div>
 
-    <main id="main-game">
-        <div id="arena">
-            <div id="status-text" style="position:absolute; top:20px; color:var(--gold); font-size:1.3rem; font-family:Cinzel;">WAITING...</div>
-            <div id="host-zone" style="display:none; position:absolute; top:80px;">
-                <button class="btn" style="width:200px;" onclick="requestStart()">시대 시작</button>
+    <main id="arena" style="display:flex; flex-direction:column; visibility:hidden;">
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; flex-direction:column;">
+            <div id="status-msg" style="color:var(--gold); font-family:Cinzel; font-size:1.5rem; margin-bottom:30px; letter-spacing:2px;">WAITING FOR NOBLES...</div>
+            <div id="host-controls" style="display:none; margin-bottom:20px;">
+                <button class="primary-btn" style="width:250px;" onclick="startGame()">새 시대 개막</button>
             </div>
-            <div class="table"><div id="table-cards" style="display:flex;"></div></div>
+            <div class="table-rim"><div id="table-cards" style="display:flex;"></div></div>
         </div>
-        <div id="player-area">
-            <div id="play-btns" style="display:none;">
-                <button class="btn" id="btn-rev" style="display:none; width:150px; border-color:red; color:red; margin-bottom:5px;" onclick="triggerRevolution()">REVOLUTION!</button>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn" id="btn-submit" style="width:130px;" onclick="submitMove()">카드 내기</button>
-                    <button class="btn" id="btn-pass" style="width:130px;" onclick="passTurn()">패스</button>
-                </div>
+
+        <div id="player-dock">
+            <div id="action-bar" style="display:none; gap:15px; margin-bottom:10px;">
+                <button class="primary-btn" id="play-btn" style="width:140px;" onclick="handlePlay()">패 내기</button>
+                <button class="primary-btn" id="pass-btn" style="width:140px; background:#444;" onclick="handlePass()">패스</button>
             </div>
             <div id="hand"></div>
         </div>
     </main>
 
     <aside id="right-panel">
-        <h3 style="color:var(--gold); text-align:center; font-family:Cinzel;">SOCIAL RANK</h3>
-        <div id="p-list"></div>
-        <div id="game-logs"></div>
-        <input type="text" id="chat-box" placeholder="메시지 전송..." style="background:#000; border:1px solid #333; color:white; padding:12px;" onkeypress="sendChat(event)">
+        <h3 style="font-family:Cinzel; text-align:center; color:var(--gold);">Social Status</h3>
+        <div id="status-list" style="flex:1; margin-bottom:20px;"></div>
+        <div id="log-box"></div>
+        <input type="text" id="chat-input" placeholder="대화를 나누세요..." onkeypress="if(event.key==='Enter') sendMsg()">
     </aside>
 
     <script>
-        // 1. Firebase 설정
-        const firebaseConfig = {
+        // --- Core Settings ---
+        const config = {
             apiKey: "AIzaSyCmoc8BJt81KTfni_hA6FO8w9s_B5yTidc",
             authDomain: "gamee-10378.firebaseapp.com",
-            projectId: "gamee-10378",
             databaseURL: "https://gamee-10378-default-rtdb.firebaseio.com",
-            storageBucket: "gamee-10378.firebasestorage.app",
-            messagingSenderId: "959963691936",
-            appId: "1:959963691936:web:9efdefbcc3efb86bbec2c5"
+            projectId: "gamee-10378"
         };
-        firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(config);
         const db = firebase.database();
 
-        // 2. 변수 설정
-        const JOBS = ["", "Greater Dalmuti", "Lesser Dalmuti", "Archbishop", "Abbot", "Knight", "Cavalier", "Merchant", "Yeoman", "Shepherd", "Cook", "Mason", "Seamstress", "Peasant"];
+        const RANKS = ["", "Greater Dalmuti", "Lesser Dalmuti", "Archbishop", "Abbot", "Knight", "Cavalier", "Merchant", "Yeoman", "Shepherd", "Cook", "Mason", "Seamstress", "Peasant"];
         let myId = 'u_' + Math.random().toString(36).substr(2, 9);
-        let myName = "", currentRoomId = null, isHost = false, selected = [], gameState = {}, currentTab = 'multi', isNPCMode = false;
+        let myName = "", currentRoomId = null, isHost = false, selected = [], state = {}, currentTab = 'multi', isNPCMode = false;
 
-        const rb = document.getElementById('rule-box');
-        for(let i=1; i<=13; i++) rb.innerHTML += `<div>${i}. ${JOBS[i]}</div>`;
+        // --- Init UI ---
+        const hList = document.getElementById('hierarchy-list');
+        for(let i=1; i<=13; i++) hList.innerHTML += `<div><b>${i}</b>. ${RANKS[i]}</div>`;
 
-        // 3. 로비 및 탭 전환
-        function switchTab(tab) {
-            currentTab = tab;
-            document.getElementById('tab-multi').classList.toggle('active', tab === 'multi');
-            document.getElementById('tab-npc').classList.toggle('active', tab === 'npc');
-            document.getElementById('create-btn').style.display = (tab === 'multi') ? 'block' : 'none';
-            renderRoomList();
+        function setTab(t) {
+            currentTab = t;
+            document.getElementById('tab-multi').className = t==='multi'?'tab-btn active':'tab-btn';
+            document.getElementById('tab-npc').className = t==='npc'?'tab-btn active':'tab-btn';
+            document.getElementById('create-trigger').style.display = t==='multi'?'block':'none';
+            renderRooms();
         }
 
-        function renderRoomList() {
+        // --- Room Management ---
+        function renderRooms() {
             const list = document.getElementById('room-list');
             list.innerHTML = '';
-            
-            if (currentTab === 'npc') {
-                const npcRoom = document.createElement('div');
-                npcRoom.className = 'room-item';
-                npcRoom.innerHTML = `<span>🤖 NPC 연습 경기장</span><span>[입장]</span>`;
-                npcRoom.onclick = startNPCGame;
-                list.appendChild(npcRoom);
+            if(currentTab === 'npc') {
+                list.innerHTML = `<div class="room-card" onclick="startNPC()">
+                    <span>🤖 NPC 연습 경기장 (1인용)</span><span style="color:var(--success)">[즉시입장]</span>
+                </div>`;
                 return;
             }
-
             db.ref('rooms').on('value', snap => {
                 if(currentTab !== 'multi') return;
                 list.innerHTML = '';
                 const rooms = snap.val();
-                if(!rooms) return;
+                if(!rooms) { list.innerHTML = '<p style="color:#666; margin-top:20px;">건설된 성이 없습니다.</p>'; return; }
                 Object.keys(rooms).forEach(id => {
                     const r = rooms[id];
-                    const div = document.createElement('div');
-                    div.className = 'room-item';
-                    div.innerHTML = `<span>🏰 ${r.roomTitle} (${Object.keys(r.players || {}).length}명)</span><span>🔒</span>`;
-                    div.onclick = () => {
-                        currentRoomId = id;
-                        document.getElementById('target-room-name').innerText = r.roomTitle;
-                        document.getElementById('join-modal').style.display = 'flex';
-                    };
-                    list.appendChild(div);
+                    list.innerHTML += `<div class="room-card" onclick="preJoin('${id}', '${r.roomTitle}')">
+                        <div><b style="color:var(--gold)">🏰 ${r.roomTitle}</b><br><small>${Object.keys(r.players||{}).length}명 대기중</small></div>
+                        <span>🔒</span>
+                    </div>`;
                 });
             });
         }
-        renderRoomList();
+        setTab('multi');
 
-        // 4. 방 생성 및 보안
-        function checkAdminCreate() {
-            if(document.getElementById('admin-pw').value !== "00123") return alert("방장 인증 코드가 틀렸습니다.");
-            if(!document.getElementById('nick-input').value.trim()) return alert("이름을 입력하세요.");
-            document.getElementById('lobby-modal').style.display = 'none';
-            document.getElementById('create-modal').style.display = 'flex';
+        function openCreateModal() {
+            if(document.getElementById('admin-key').value !== "00123") return alert("방장 생성 코드가 일치하지 않습니다.");
+            if(!document.getElementById('user-name').value.trim()) return alert("성함을 입력하세요.");
+            document.getElementById('create-screen').style.display = 'flex';
         }
 
-        function finalizeRoom() {
-            const title = document.getElementById('room-title').value.trim();
-            const pw = document.getElementById('entry-pw').value.trim();
-            if(!title || !pw) return alert("제목과 비밀번호를 모두 입력하세요.");
+        function confirmCreate() {
+            const title = document.getElementById('new-room-name').value.trim();
+            const pw = document.getElementById('new-room-pw').value.trim();
+            if(!title || !pw) return alert("방제와 비밀번호를 모두 입력하세요.");
             
-            myName = document.getElementById('nick-input').value;
-            currentRoomId = 'court_' + Date.now();
+            myName = document.getElementById('user-name').value;
+            currentRoomId = 'r_' + Date.now();
             isHost = true;
             isNPCMode = false;
 
             db.ref('rooms/' + currentRoomId).set({
-                hostId: myId, hostName: myName, roomTitle: title, password: pw,
-                status: 'waiting', players: { [myId]: { name: myName, cards: [], rank: 1 } },
-                turnOrder: [myId], taxCancelled: false, tableCards: [], lastMove: { rank: 14, count: 0, owner: "" }
-            }).then(enterGame);
+                host: myId, title: title, password: pw, status: 'waiting',
+                players: { [myId]: { name: myName, cards: [], rank: 1 } },
+                turnOrder: [myId], tableCards: [], lastMove: { val: 14, count: 0, owner: "" }
+            }).then(initGame);
         }
 
-        function verifyJoin() {
-            db.ref(`rooms/${currentRoomId}`).once('value', s => {
+        function preJoin(id, title) {
+            if(!document.getElementById('user-name').value.trim()) return alert("성함을 먼저 입력하세요.");
+            currentRoomId = id;
+            document.getElementById('join-target-desc').innerText = `[${title}] 성에 입장하시겠습니까?`;
+            document.getElementById('join-screen').style.display = 'flex';
+        }
+
+        function confirmJoin() {
+            db.ref('rooms/' + currentRoomId).once('value', s => {
                 const r = s.val();
-                if(document.getElementById('input-join-pw').value === r.password) {
-                    myName = document.getElementById('nick-input').value.trim() || "Noble";
+                if(document.getElementById('join-pw-input').value === r.password) {
+                    myName = document.getElementById('user-name').value;
                     db.ref(`rooms/${currentRoomId}/players/${myId}`).set({ name: myName, cards: [], rank: 99 });
                     db.ref(`rooms/${currentRoomId}/turnOrder`).once('value', so => {
                         let o = so.val() || []; o.push(myId);
                         db.ref(`rooms/${currentRoomId}/turnOrder`).set(o);
                     });
-                    enterGame();
-                } else alert("비밀번호가 틀렸습니다.");
+                    initGame();
+                } else alert("비밀번호가 올바르지 않습니다.");
             });
         }
 
-        // 5. NPC 모드 엔진
-        function startNPCGame() {
-            myName = document.getElementById('nick-input').value.trim() || "Player";
-            isNPCMode = true;
-            isHost = true;
-            currentRoomId = "npc_room";
-            
-            gameState = {
+        // --- NPC AI Mode ---
+        function startNPC() {
+            myName = document.getElementById('user-name').value.trim() || "Noble Traveler";
+            isNPCMode = true; isHost = true; currentRoomId = "npc_local";
+            state = {
                 status: 'waiting',
                 players: {
                     [myId]: { name: myName, cards: [], rank: 1 },
-                    'npc1': { name: '컴퓨터1', cards: [], rank: 2 },
-                    'npc2': { name: '컴퓨터2', cards: [], rank: 3 },
-                    'npc3': { name: '컴퓨터3', cards: [], rank: 4 }
+                    'c1': { name: '컴퓨터1', cards: [], rank: 2 },
+                    'c2': { name: '컴퓨터2', cards: [], rank: 3 },
+                    'c3': { name: '컴퓨터3', cards: [], rank: 4 }
                 },
-                turnOrder: [myId, 'npc1', 'npc2', 'npc3'],
-                turnIndex: 0,
-                tableCards: [],
-                lastMove: { rank: 14, count: 0, owner: "" },
-                passCount: 0
+                turnOrder: [myId, 'c1', 'c2', 'c3'],
+                turnIndex: 0, tableCards: [], lastMove: { val: 14, count: 0, owner: "" }, passCount: 0
             };
-            
-            document.getElementById('lobby-modal').style.display = 'none';
-            document.getElementById('main-game').classList.add('active');
+            document.getElementById('lobby-screen').style.display = 'none';
+            document.getElementById('arena').style.visibility = 'visible';
             updateUI();
         }
 
-        // 6. 게임 코어 로직
-        function requestStart() {
+        // --- Game Engine ---
+        function startGame() {
             let deck = [];
             for(let i=1; i<=12; i++) for(let j=0; j<i; j++) deck.push(i);
             deck.push(13, 13);
             deck.sort(() => Math.random() - 0.5);
 
-            let pIds = Object.keys(gameState.players);
-            pIds.forEach(id => { gameState.players[id].cards = []; });
+            let ids = Object.keys(state.players);
+            ids.forEach(id => state.players[id].cards = []);
+            let i = 0; while(deck.length) { state.players[ids[i%ids.length]].cards.push(deck.pop()); i++; }
 
-            let idx = 0;
-            while(deck.length > 0) {
-                gameState.players[pIds[idx % pIds.length]].cards.push(deck.pop());
-                idx++;
-            }
-
-            gameState.status = 'playing';
-            gameState.turnIndex = 0;
-            gameState.tableCards = [];
-            gameState.lastMove = { rank: 14, count: 0, owner: "" };
-            gameState.passCount = 0;
-
-            if(isNPCMode) updateUI();
-            else db.ref('rooms/' + currentRoomId).update(gameState);
+            state.status = 'playing'; state.turnIndex = 0; state.tableCards = []; state.lastMove = { val: 14, count: 0, owner: "" }; state.passCount = 0;
+            sync();
         }
 
         function updateUI() {
-            const pIds = gameState.turnOrder || [];
-            const pList = document.getElementById('p-list'); pList.innerHTML = '';
-            
-            pIds.forEach((id, i) => {
-                const p = gameState.players[id];
-                const active = gameState.turnIndex === i;
-                pList.innerHTML += `<div style="padding:10px; margin-bottom:5px; background:${active?'rgba(223,187,105,0.2)':'#111'}; border-radius:5px;">
-                    <b>${p.name}</b> <span class="rank-tag rank-${i+1}">${JOBS[i+1]}</span>
-                    <div style="font-size:0.7rem;">카드: ${p.cards.length}장</div></div>`;
+            const order = state.turnOrder || [];
+            const sList = document.getElementById('status-list'); sList.innerHTML = '';
+            order.forEach((id, i) => {
+                const p = state.players[id];
+                const active = state.turnIndex === i;
+                sList.innerHTML += `<div style="padding:12px; margin-bottom:8px; background:${active?'rgba(197,160,89,0.15)':'#222'}; border-radius:10px; border-left:4px solid ${active?'var(--gold)':'transparent'}">
+                    <div style="display:flex; justify-content:space-between">
+                        <b>${p.name}</b> <span class="rank-badge ${i<2?'rank-gold':''}">${RANKS[i+1]}</span>
+                    </div>
+                    <div style="font-size:0.75rem; color:#777; margin-top:5px;">CARDS: ${p.cards.length}</div>
+                </div>`;
             });
 
-            const h = document.getElementById('hand'); h.innerHTML = '';
-            const myCards = (gameState.players[myId]?.cards || []).sort((a,b)=>a-b);
-            myCards.forEach((n, i) => {
+            const handDiv = document.getElementById('hand'); handDiv.innerHTML = '';
+            const myCards = (state.players[myId]?.cards || []).sort((a,b)=>a-b);
+            myCards.forEach((v, i) => {
                 const c = document.createElement('div');
                 c.className = `card ${selected.includes(i)?'selected':''}`;
-                c.innerHTML = `<div>${n}</div><div style="color:red; font-size:0.6rem;">${JOBS[n]}</div><div>${n}</div>`;
+                c.innerHTML = `<div class="val">${v}</div><div class="title">${RANKS[v]}</div><div class="val" style="align-self:flex-end">${v}</div>`;
                 c.onclick = () => {
-                    if(pIds[gameState.turnIndex] === myId) {
-                        const val = myCards[i];
-                        if(selected.length > 0 && val !== myCards[selected[0]] && val !== 13) selected = [];
+                    if(order[state.turnIndex] === myId) {
+                        if(selected.length > 0 && v !== myCards[selected[0]] && v !== 13) selected = [];
                         const pos = selected.indexOf(i);
                         if(pos > -1) selected.splice(pos, 1); else selected.push(i);
                         updateUI();
                     }
                 };
-                h.appendChild(c);
+                handDiv.appendChild(c);
             });
 
-            const tc = document.getElementById('table-cards'); tc.innerHTML = '';
-            (gameState.tableCards || []).forEach(n => {
-                tc.innerHTML += `<div class="card played-card"><div>${n}</div><div style="font-size:0.6rem;">${JOBS[n]}</div><div>${n}</div></div>`;
+            const tCards = document.getElementById('table-cards'); tCards.innerHTML = '';
+            (state.tableCards || []).forEach(v => {
+                tCards.innerHTML += `<div class="card played-card"><div class="val">${v}</div><div class="title">${RANKS[v]}</div><div class="val" style="align-self:flex-end">${v}</div></div>`;
             });
 
-            const isMyTurn = pIds[gameState.turnIndex] === myId;
-            document.getElementById('play-btns').style.display = gameState.status === 'playing' ? 'block' : 'none';
-            document.getElementById('btn-submit').disabled = !isMyTurn || selected.length === 0;
-            document.getElementById('btn-pass').disabled = !isMyTurn || gameState.lastMove.owner === "";
-            document.getElementById('host-zone').style.display = (isHost && gameState.status !== 'playing') ? 'block' : 'none';
-            document.getElementById('host-destroy-btn').style.display = isHost ? 'block' : 'none';
-            document.getElementById('status-text').innerText = isMyTurn ? "당신의 차례!" : `${gameState.players[pIds[gameState.turnIndex]].name}의 차례`;
+            const myTurn = order[state.turnIndex] === myId;
+            document.getElementById('action-bar').style.display = state.status === 'playing' ? 'flex' : 'none';
+            document.getElementById('play-btn').disabled = !myTurn || selected.length === 0;
+            document.getElementById('pass-btn').disabled = !myTurn || state.lastMove.owner === "";
+            document.getElementById('host-controls').style.display = (isHost && state.status !== 'playing') ? 'block' : 'none';
+            document.getElementById('admin-destroy-btn').style.display = isHost && !isNPCMode ? 'block' : 'none';
+            document.getElementById('status-msg').innerText = myTurn ? "YOUR TURN" : `${state.players[order[state.turnIndex]].name}'S TURN`;
 
-            // NPC 턴 처리
-            if(isNPCMode && !isMyTurn && gameState.status === 'playing') {
-                setTimeout(npcPlay, 1500);
-            }
+            if(isNPCMode && !myTurn && state.status === 'playing') setTimeout(npcAI, 1200);
         }
 
-        function submitMove() {
-            const hand = gameState.players[myId].cards.sort((a,b)=>a-b);
-            let r = hand[selected[0]];
-            const c = selected.length;
-
-            if(gameState.lastMove.owner === "" || (r < gameState.lastMove.rank && c === gameState.lastMove.count)) {
+        function handlePlay() {
+            const hand = state.players[myId].cards.sort((a,b)=>a-b);
+            let v = hand[selected[0]]; const c = selected.length;
+            if(state.lastMove.owner==="" || (v < state.lastMove.val && c === state.lastMove.count)) {
                 selected.sort((a,b)=>b-a).forEach(idx => hand.splice(idx, 1));
                 selected = [];
-                gameState.lastMove = { rank: r, count: c, owner: myId };
-                gameState.tableCards = Array(c).fill(r);
-                gameState.passCount = 0;
-                nextTurn();
-            } else alert("낼 수 없는 카드입니다.");
-        }
-
-        function passTurn() {
-            gameState.passCount++;
-            if(gameState.passCount >= gameState.turnOrder.length - 1) {
-                gameState.tableCards = [];
-                gameState.lastMove = { rank: 14, count: 0, owner: "" };
-                gameState.passCount = 0;
+                state.lastMove = { val: v, count: c, owner: myId };
+                state.tableCards = Array(c).fill(v);
+                state.passCount = 0;
+                checkWin(myId);
+                next();
             }
-            nextTurn();
         }
 
-        function nextTurn() {
-            gameState.turnIndex = (gameState.turnIndex + 1) % gameState.turnOrder.length;
-            if(gameState.players[myId].cards.length === 0 && gameState.status === 'playing') {
-                gameState.status = 'waiting';
-                alert("당신이 승리했습니다!");
+        function handlePass() {
+            state.passCount++;
+            if(state.passCount >= state.turnOrder.length - 1) {
+                state.tableCards = []; state.lastMove = { val: 14, count: 0, owner: "" }; state.passCount = 0;
             }
-            if(isNPCMode) updateUI();
-            else db.ref('rooms/' + currentRoomId).update(gameState);
+            next();
         }
 
-        function npcPlay() {
-            const npcId = gameState.turnOrder[gameState.turnIndex];
-            const hand = gameState.players[npcId].cards.sort((a,b)=>a-b);
-            const last = gameState.lastMove;
+        function npcAI() {
+            const npcId = state.turnOrder[state.turnIndex];
+            const hand = state.players[npcId].cards.sort((a,b)=>a-b);
+            const last = state.lastMove;
+            let play = [];
             
-            let possible = [];
             if(last.owner === "") {
-                // 아무거나 내기
-                const r = hand[hand.length-1];
-                const count = hand.filter(x => x === r).length;
-                possible = Array(count).fill(r);
+                const target = hand[hand.length-1];
+                play = hand.filter(x => x === target);
             } else {
-                // 족보에 맞는 카드 찾기
-                for(let r=1; r<last.rank; r++) {
-                    const count = hand.filter(x => x === r).length;
-                    if(count >= last.count) {
-                        possible = Array(last.count).fill(r);
-                        break;
-                    }
+                for(let v=1; v<last.val; v++) {
+                    const found = hand.filter(x => x === v);
+                    if(found.length >= last.count) { play = found.slice(0, last.count); break; }
                 }
             }
 
-            if(possible.length > 0) {
-                const r = possible[0];
-                possible.forEach(val => {
-                    const idx = hand.indexOf(val);
-                    hand.splice(idx, 1);
-                });
-                gameState.lastMove = { rank: r, count: possible.length, owner: npcId };
-                gameState.tableCards = possible;
-                gameState.passCount = 0;
-                log("MOVE", `${gameState.players[npcId].name}: ${r}을(를) ${possible.length}장 냈습니다.`);
+            if(play.length > 0) {
+                const val = play[0];
+                play.forEach(pv => hand.splice(hand.indexOf(pv), 1));
+                state.lastMove = { val: val, count: play.length, owner: npcId };
+                state.tableCards = play; state.passCount = 0;
+                log(`[${state.players[npcId].name}]가 ${val}을 ${play.length}장 냈습니다.`);
+                checkWin(npcId);
             } else {
-                gameState.passCount++;
-                log("PASS", `${gameState.players[npcId].name} 패스.`);
-                if(gameState.passCount >= gameState.turnOrder.length - 1) {
-                    gameState.tableCards = [];
-                    gameState.lastMove = { rank: 14, count: 0, owner: "" };
-                    gameState.passCount = 0;
+                state.passCount++;
+                log(`[${state.players[npcId].name}]가 패스했습니다.`);
+                if(state.passCount >= state.turnOrder.length - 1) {
+                    state.tableCards = []; state.lastMove = { val: 14, count: 0, owner: "" }; state.passCount = 0;
                 }
             }
-            nextTurn();
+            next();
         }
 
-        // 유틸리티 함수
-        function enterGame() {
-            document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
-            document.getElementById('main-game').classList.add('active');
+        function next() { state.turnIndex = (state.turnIndex + 1) % state.turnOrder.length; sync(); }
+        function checkWin(id) { if(state.players[id].cards.length === 0) { state.status = 'waiting'; alert(`${state.players[id].name} 승리! 시대가 종료됩니다.`); } }
+        function sync() { if(isNPCMode) updateUI(); else db.ref('rooms/' + currentRoomId).update(state); }
+
+        // --- Utils ---
+        function initGame() {
+            document.querySelectorAll('.overlay').forEach(e => e.style.display = 'none');
+            document.getElementById('arena').style.visibility = 'visible';
             db.ref('rooms/' + currentRoomId).on('value', snap => {
-                gameState = snap.val();
-                if(!gameState) { alert("성이 무너졌습니다."); location.reload(); return; }
-                isHost = (gameState.hostId === myId);
+                state = snap.val();
+                if(!state) return location.reload();
+                isHost = state.host === myId;
                 updateUI();
             });
         }
-
-        function leaveRoom() { if(confirm("퇴장하시겠습니까?")) location.reload(); }
-        function destroyRoom() { if(confirm("성을 파괴하시겠습니까?")) db.ref('rooms/' + currentRoomId).remove(); }
-        function cancelCreate() { document.getElementById('create-modal').style.display='none'; document.getElementById('lobby-modal').style.display='flex'; }
-        function cancelJoin() { document.getElementById('join-modal').style.display='none'; }
-        function log(u, m) { const g = document.getElementById('game-logs'); g.innerHTML += `<div>[${u}] ${m}</div>`; g.scrollTop = g.scrollHeight; }
-        function sendChat(e) { if(e.key==='Enter' && e.target.value.trim()){ log("CHAT", `${myName}: ${e.target.value}`); e.target.value=''; } }
+        function closeModals() { document.querySelectorAll('.overlay').forEach(e => { if(e.id !== 'lobby-screen') e.style.display = 'none'; }); }
+        function exitGame() { if(confirm("성을 떠나시겠습니까?")) location.reload(); }
+        function destroyCourt() { if(confirm("성을 완전히 파괴합니다.")) db.ref('rooms/' + currentRoomId).remove(); }
+        function log(m) { const b = document.getElementById('log-box'); b.innerHTML += `<div>${m}</div>`; b.scrollTop = b.scrollHeight; }
+        function sendMsg() { const i = document.getElementById('chat-input'); if(i.value) { log(`<b>${myName}:</b> ${i.value}`); i.value=''; } }
     </script>
 </body>
 </html>
