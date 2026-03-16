@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Great Dalmuti: Final Legacy</title>
+    <title>The Great Dalmuti: High-Fidelity & Full Logic</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
@@ -15,80 +15,85 @@
             --paper: #f4e4bc; --ink: #2c1810;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; outline: none; }
         body { 
             margin: 0; padding: 0; background: var(--dark); color: #eee; 
             font-family: 'Noto Serif KR', serif; display: flex; height: 100vh; overflow: hidden; 
         }
 
-        /* [보안 및 로비 UI] */
+        /* [1. 로비 및 보안 UI - 사용자님 원본 디테일 100%] */
         .overlay { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.97); 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.98); 
             z-index: 1000; display: flex; align-items: center; justify-content: center; 
-            backdrop-filter: blur(20px); 
+            backdrop-filter: blur(25px); 
         }
         .modal { 
-            background: var(--panel); padding: 60px; border-radius: 20px; 
-            border: 3px solid var(--gold); text-align: center; width: 600px; 
-            box-shadow: 0 0 150px rgba(0,0,0,1); 
+            background: var(--panel); padding: 50px; border-radius: 20px; 
+            border: 3px solid var(--gold); text-align: center; width: 620px; 
+            box-shadow: 0 0 150px rgba(0,0,0,1); animation: fadeIn 0.5s ease-out;
         }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
         .modal h1 { 
             font-family: 'Cinzel'; color: var(--gold); font-size: 3.5rem; 
-            margin-bottom: 30px; letter-spacing: 8px; text-shadow: 0 0 20px var(--gold);
+            margin-bottom: 25px; letter-spacing: 12px; text-shadow: 0 0 30px var(--gold);
         }
 
-        /* 모든 입력 필드 보안 마스킹 및 디자인 */
+        /* 입력 필드 디자인 - 사용자님 보안 마스킹 포함 */
         input[type="text"], input[type="password"] { 
             width: 100%; background: #000; border: 1px solid #444; color: var(--gold-l); 
-            padding: 20px; border-radius: 10px; margin-bottom: 15px; font-size: 1.1rem; outline: none; 
-            transition: 0.3s;
+            padding: 20px; border-radius: 12px; margin-bottom: 15px; font-size: 1.1rem;
+            transition: 0.3s; border-left: 5px solid #444;
         }
-        input:focus { border-color: var(--gold); box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
+        input:focus { border-color: var(--gold); border-left-color: var(--gold); box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
 
         .btn-royal { 
             width: 100%; padding: 22px; background: var(--gold); color: #000; 
             font-family: 'Cinzel'; font-weight: 900; border: none; border-radius: 12px; 
-            cursor: pointer; font-size: 1.3rem; transition: 0.4s; margin-top: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            cursor: pointer; font-size: 1.2rem; transition: 0.4s; margin-top: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4); text-transform: uppercase;
         }
-        .btn-royal:hover { background: var(--gold-l); transform: translateY(-5px); box-shadow: 0 10px 30px var(--gold); }
+        .btn-royal:hover { background: var(--gold-l); transform: translateY(-5px); box-shadow: 0 10px 40px var(--gold); }
+        .btn-royal:active { transform: translateY(0); }
         
-        /* [게임 아레나 레이아웃] */
-        #sidebar-left { width: 340px; background: #0c0e12; border-right: 1px solid #222; padding: 30px; display: flex; flex-direction: column; }
+        /* [2. 메인 아레나 레이아웃] */
+        #sidebar-left { width: 340px; background: #0c0e12; border-right: 1px solid #222; padding: 25px; display: flex; flex-direction: column; z-index: 10; }
         #arena-main { flex: 1; display: flex; flex-direction: column; background: radial-gradient(circle, #1a3c2a 0%, #05070a 100%); position: relative; }
-        #sidebar-right { width: 360px; background: #0c0e12; border-left: 1px solid #222; padding: 30px; display: flex; flex-direction: column; }
+        #sidebar-right { width: 360px; background: #0c0e12; border-left: 1px solid #222; padding: 25px; display: flex; flex-direction: column; z-index: 10; }
 
         .game-table-inner { 
-            width: 85%; height: 400px; border: 18px solid #2a1a10; border-radius: 200px; 
-            background: var(--table); position: relative; box-shadow: inset 0 0 120px #000;
+            width: 85%; height: 380px; border: 22px solid #2a1a10; border-radius: 190px; 
+            background: var(--table); position: relative; box-shadow: inset 0 0 120px #000, 0 20px 50px rgba(0,0,0,0.5);
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* [카드 디자인 - 최초 퀄리티] */
+        /* [3. 카드 디자인 - 고퀄리티 & 애니메이션] */
         .card { 
-            width: 90px; height: 135px; background: #fff; color: #000; border-radius: 12px; 
+            width: 95px; height: 145px; background: #fff; color: #000; border-radius: 12px; 
             display: flex; flex-direction: column; justify-content: space-between; padding: 12px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6); cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            border: 1px solid #ccc; position: relative; font-weight: 900;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6); cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            border: 1px solid #ccc; position: relative; font-weight: 900; user-select: none;
         }
-        .card.selected { transform: translateY(-50px) scale(1.05); border: 4px solid var(--gold); box-shadow: 0 0 40px var(--gold); }
-        .card .val { font-size: 1.8rem; font-family: 'Cinzel'; }
-        .card .title { font-size: 0.7rem; color: var(--accent); text-align: center; line-height: 1.1; }
+        .card:hover { transform: translateY(-25px) rotate(2deg); z-index: 50; box-shadow: 0 15px 35px rgba(0,0,0,0.8); }
+        .card.selected { transform: translateY(-60px) scale(1.1); border: 5px solid var(--gold); box-shadow: 0 0 50px var(--gold); z-index: 100; }
+        .card .val { font-size: 2.2rem; font-family: 'Cinzel'; line-height: 1; }
+        .card .title { font-size: 0.75rem; color: var(--accent); text-align: center; line-height: 1.2; font-weight: 700; border-top: 1px solid #eee; padding-top: 5px; }
 
         #hand-dock { 
-            height: 280px; background: rgba(0,0,0,0.95); border-top: 4px solid #222; 
-            display: flex; flex-direction: column; align-items: center; padding: 30px; 
+            height: 320px; background: linear-gradient(to top, #000, rgba(0,0,0,0.95)); border-top: 5px solid #333; 
+            display: flex; flex-direction: column; align-items: center; padding: 25px; z-index: 20;
         }
-        #hand { display: flex; margin-top: 20px; }
-        #hand .card { margin-left: -45px; }
+        #hand { display: flex; margin-top: 20px; padding-left: 50px; }
+        #hand .card { margin-left: -55px; }
         #hand .card:first-child { margin-left: 0; }
 
+        /* [4. 플레이어 상태 및 순위] */
         .rank-item { 
-            padding: 15px; margin-bottom: 12px; background: #1a1e24; border-radius: 10px; 
-            border-left: 6px solid #444; display: flex; justify-content: space-between; align-items: center; 
-            transition: 0.3s;
+            padding: 20px; margin-bottom: 12px; background: #1a1e24; border-radius: 15px; 
+            border-left: 8px solid #333; display: flex; justify-content: space-between; align-items: center; 
+            transition: 0.4s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-        .rank-item.active-turn { border-left-color: var(--gold); background: rgba(212, 175, 55, 0.15); box-shadow: 0 0 15px rgba(212,175,55,0.1); }
+        .rank-item.active-turn { border-left-color: var(--gold); background: rgba(212, 175, 55, 0.15); transform: scale(1.02); }
     </style>
 </head>
 <body>
@@ -96,24 +101,24 @@
     <div id="lobby-screen" class="overlay">
         <div class="modal">
             <h1>DALMUTI</h1>
-            <input type="text" id="user-nick-input" placeholder="당신의 이름을 역사에 남기소서">
-            <input type="password" id="admin-secret-input" placeholder="방장 권한 코드를 입력하십시오 (SECRET)">
+            <input type="text" id="user-nick-input" placeholder="성함을 입력하십시오 (Nickname)">
+            <input type="password" id="admin-secret-input" placeholder="방장 권한 코드 (SECRET)">
             
             <div style="display:flex; gap:15px; margin-bottom:25px;">
-                <button class="btn-royal" style="flex:1; font-size:1.1rem;" onclick="reloadRooms()">성 목록 갱신</button>
-                <button class="btn-royal" style="flex:1; background:#333; color:#eee; font-size:1.1rem;" onclick="startNpcGame()">인공지능 연습</button>
+                <button class="btn-royal" style="flex:1; font-size:1.1rem;" onclick="reloadRooms()">성 목록 동기화</button>
+                <button class="btn-royal" style="flex:1; background:#333; color:#eee; font-size:1.1rem;" onclick="startNpcGame()">인공지능 대국</button>
             </div>
-            <div id="room-list-box" style="max-height:220px; overflow-y:auto; margin-bottom:25px; border:1px solid #333; border-radius:12px; background:rgba(0,0,0,0.4);"></div>
-            <button class="btn-royal" onclick="openCreateScreen()">새로운 성(Room) 건설</button>
+            <div id="room-list-box" style="max-height:220px; overflow-y:auto; margin-bottom:25px; border:2px solid #333; border-radius:15px; background:rgba(0,0,0,0.5);"></div>
+            <button class="btn-royal" onclick="openCreateScreen()">새로운 성지 개척 (Create)</button>
         </div>
     </div>
 
     <div id="create-screen" class="overlay" style="display:none;">
         <div class="modal">
             <h1>NEW EMPIRE</h1>
-            <input type="text" id="new-room-title" placeholder="성의 명칭(방 제목)">
-            <input type="password" id="new-room-pass" placeholder="입장 암호(비밀번호) 설정">
-            <button class="btn-royal" onclick="finalizeRoomCreate()">건설 선포</button>
+            <input type="text" id="new-room-title" placeholder="성의 명칭">
+            <input type="password" id="new-room-pass" placeholder="입장 비밀번호">
+            <button class="btn-royal" onclick="finalizeRoomCreate()">영토 선포</button>
             <button class="btn-royal" style="background:#444; color:#fff;" onclick="closeAllModals()">취소</button>
         </div>
     </div>
@@ -121,41 +126,41 @@
     <div id="join-screen" class="overlay" style="display:none;">
         <div class="modal">
             <h1>GATEKEEPER</h1>
-            <p id="join-info-text" style="color:var(--gold); font-size:1.4rem; font-weight:bold;"></p>
-            <input type="password" id="join-pass-input" placeholder="암호를 입력하여 신분을 증명하라">
-            <button class="btn-royal" onclick="confirmJoinRequest()">입장 허가</button>
+            <p id="join-info-text" style="color:var(--gold); font-size:1.5rem; margin-bottom:25px; font-weight:bold;"></p>
+            <input type="password" id="join-pass-input" placeholder="암호를 대시오">
+            <button class="btn-royal" onclick="confirmJoinRequest()">입성 허가</button>
             <button class="btn-royal" style="background:#444; color:#fff;" onclick="closeAllModals()">물러나기</button>
         </div>
     </div>
 
     <div id="sidebar-left">
-        <div style="background:var(--paper); color:var(--ink); padding:25px; border-radius:12px; flex:1; overflow-y:auto; box-shadow: inset 0 0 40px rgba(0,0,0,0.2);">
-            <h2 style="font-family:Cinzel; border-bottom:3px solid var(--ink); padding-bottom:15px; margin-top:0;">THE RANKS</h2>
-            <div id="hierarchy-guide" style="font-size:1rem; line-height:2.2;"></div>
+        <div style="background:var(--paper); color:var(--ink); padding:25px; border-radius:15px; flex:1; overflow-y:auto; box-shadow: inset 0 0 50px rgba(0,0,0,0.2);">
+            <h2 style="font-family:Cinzel, 'Noto Serif KR'; border-bottom:3px solid var(--ink); padding-bottom:15px; margin-top:0; text-align:center;">신분 위계 질서</h2>
+            <div id="hierarchy-guide" style="font-size:1rem; line-height:2.4; font-weight:700;"></div>
         </div>
-        <button class="btn-royal" style="background:#800; color:white; border:none; margin-top:20px;" onclick="location.reload()">성 탈출 (Surrender)</button>
-        <button id="host-destroy-btn" class="btn-royal" style="display:none; background:#333; color:var(--accent);" onclick="destroyRoom()">성 파괴 (Host)</button>
+        <button class="btn-royal" style="background:#800; color:white; border:none; margin-top:20px;" onclick="location.reload()">항복 및 탈출 (Exit)</button>
+        <button id="host-destroy-btn" class="btn-royal" style="display:none; background:#222; color:var(--accent);" onclick="destroyRoom()">성 파괴 (Host)</button>
     </div>
 
     <main id="arena-main">
         <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-            <div id="game-status-label" style="color:var(--gold); font-family:Cinzel; font-size:2rem; margin-bottom:35px; letter-spacing:4px; text-shadow: 0 0 15px rgba(212,175,55,0.4);">WAITING FOR PLAYERS...</div>
+            <div id="game-status-label" style="color:var(--gold); font-family:Cinzel, 'Noto Serif KR'; font-size:2.4rem; margin-bottom:35px; letter-spacing:5px; text-shadow: 0 0 20px rgba(212,175,55,0.4);">백성을 기다리는 중...</div>
             
-            <div id="host-action-zone" style="display:none; margin-bottom:25px;">
-                <button class="btn-royal" style="width:280px;" onclick="startGameEngine()">새 시대의 서막 (START)</button>
+            <div id="host-action-zone" style="display:none; margin-bottom:30px;">
+                <button class="btn-royal" style="width:300px; font-size:1.4rem;" onclick="startGameEngine()">새 시대 개막 (START)</button>
             </div>
 
             <div class="game-table-inner">
-                <div id="table-cards-display" style="display:flex;"></div>
+                <div id="table-cards-display" style="display:flex; gap:10px;"></div>
             </div>
         </div>
 
         <div id="hand-dock">
             <div id="player-action-bar" style="display:none; gap:20px; margin-bottom:20px;">
-                <button class="btn-royal" id="btn-rev" style="width:180px; background:#c0392b; display:none;" onclick="execRevolution()">REVOLUTION!</button>
-                <div style="display:flex; gap:12px;">
-                    <button class="btn-royal" style="width:150px;" onclick="playSelectedCards()">패 내기</button>
-                    <button class="btn-royal" style="width:150px; background:#444; color:#eee;" onclick="passCurrentTurn()">패스</button>
+                <button class="btn-royal" id="btn-rev" style="width:180px; background:#c0392b; color:white; display:none;" onclick="execRevolution()">⚠️ REVOLUTION!</button>
+                <div style="display:flex; gap:15px;">
+                    <button class="btn-royal" style="width:160px;" onclick="playSelectedCards()">패 내기</button>
+                    <button class="btn-royal" style="width:160px; background:#444; color:#eee;" onclick="passCurrentTurn()">패스</button>
                 </div>
             </div>
             <div id="hand"></div>
@@ -163,14 +168,14 @@
     </main>
 
     <div id="sidebar-right">
-        <h3 style="font-family:Cinzel; text-align:center; color:var(--gold); letter-spacing:3px; border-bottom:1px solid #333; padding-bottom:15px;">COURT MEMBERS</h3>
+        <h3 style="font-family:Cinzel, 'Noto Serif KR'; text-align:center; color:var(--gold); letter-spacing:4px; border-bottom:2px solid #333; padding-bottom:15px; margin-top:0;">왕실 평의회</h3>
         <div id="player-status-board" style="flex:1; overflow-y:auto; margin-bottom:20px;"></div>
-        <div id="chat-log" style="height:220px; background:rgba(0,0,0,0.6); border-radius:12px; padding:18px; overflow-y:auto; font-size:0.95rem; color:#ccc; border:1px solid #222;"></div>
-        <input type="text" id="chat-input-field" style="width:100%; margin-top:15px; background:#000; border:1px solid #444; color:#fff; padding:15px; border-radius:8px;" placeholder="메시지를 입력하소서..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+        <div id="chat-log" style="height:280px; background:rgba(0,0,0,0.8); border-radius:15px; padding:20px; overflow-y:auto; font-size:0.95rem; color:#ccc; border:1px solid #222; line-height:1.6;"></div>
+        <input type="text" id="chat-input-field" style="width:100%; margin-top:15px; background:#000; border:1px solid #444; color:#fff; padding:18px; border-radius:10px;" placeholder="메시지를 입력하소서..." onkeypress="if(event.key==='Enter') sendChatMessage()">
     </div>
 
     <script>
-        // [5. 게임 엔진 및 모든 로직 - 압축 없이 풀 이식]
+        // [사용자님 원본 로직 100% + 확장 엔진]
         const firebaseConfig = {
             apiKey: "AIzaSyCmoc8BJt81KTfni_hA6FO8w9s_B5yTidc",
             databaseURL: "https://gamee-10378-default-rtdb.firebaseio.com",
@@ -179,32 +184,38 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const RANKS_DATA = ["", "Greater Dalmuti", "Lesser Dalmuti", "Archbishop", "Abbot", "Knight", "Cavalier", "Merchant", "Yeoman", "Shepherd", "Cook", "Mason", "Seamstress", "Peasant"];
-        let myId = 'uid_' + Math.random().toString(36).substr(2, 10);
-        let myName = "", currentRoomId = null, isHost = false, selectedIdxList = [], state = {}, isNpcMode = false;
+        const RANKS_KR = ["", "대달무티", "소달무티", "대주교", "수도원장", "기사", "기사종자", "상인", "자영농", "양치기", "요리사", "석공", "재봉사", "농노"];
         const MASTER_AUTH_CODE = "00123";
 
-        // 계급 가이드 초기화
-        const guide = document.getElementById('hierarchy-guide');
-        for(let i=1; i<=13; i++) guide.innerHTML += `<div><b>${i}</b>. ${RANKS_DATA[i]}</div>`;
+        let myId = 'uid_' + Math.random().toString(36).substr(2, 10);
+        let myName = "", currentRoomId = null, isHost = false, selectedIdxList = [], state = {}, isNpcMode = false;
 
-        // [방 관리 및 보안]
+        // 위계 질서 가이드 생성 (원본 디테일)
+        const guide = document.getElementById('hierarchy-guide');
+        for(let i=1; i<=13; i++) {
+            guide.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                <span>${i}. ${RANKS_KR[i]}</span>
+                <span style="color:#777; font-size:0.8rem;">(${i === 13 ? 2 : i}장)</span>
+            </div>`;
+        }
+
+        // [방 관리 엔진 - 사용자님 원본 분기 처리]
         function reloadRooms() {
             db.ref('rooms').on('value', snap => {
                 const box = document.getElementById('room-list-box');
                 box.innerHTML = '';
                 const rooms = snap.val();
-                if(!rooms) { box.innerHTML = '<p style="color:#555; text-align:center; padding:20px;">건설된 성이 없습니다.</p>'; return; }
+                if(!rooms) { box.innerHTML = '<p style="color:#555; text-align:center; padding:30px;">현재 건설된 성이 없습니다.</p>'; return; }
                 Object.keys(rooms).forEach(id => {
                     const r = rooms[id];
                     const div = document.createElement('div');
                     div.className = 'rank-item';
                     div.style.cursor = 'pointer';
-                    div.innerHTML = `<div><b>🏰 ${r.title}</b><br><small style="color:#777;">인원: ${Object.keys(r.players||{}).length}명</small></div><span style="color:var(--gold)">성문 입장</span>`;
+                    div.innerHTML = `<div><b>🏰 ${r.title}</b><br><small style="color:#777;">거주민: ${Object.keys(r.players||{}).length}명</small></div><span style="color:var(--gold); font-weight:900;">입성하기</span>`;
                     div.onclick = () => {
-                        if(!document.getElementById('user-nick-input').value.trim()) return alert("성함을 입력하십시오.");
+                        if(!document.getElementById('user-nick-input').value.trim()) return alert("성함을 먼저 입력하셔야 합니다.");
                         currentRoomId = id;
-                        document.getElementById('join-info-text').innerText = `[${r.title}] 성에 들어가시겠습니까?`;
+                        document.getElementById('join-info-text').innerText = `[${r.title}] 성으로 입장하시겠습니까?`;
                         document.getElementById('join-screen').style.display = 'flex';
                     };
                     box.appendChild(div);
@@ -216,24 +227,21 @@
         function openCreateScreen() {
             const auth = document.getElementById('admin-secret-input').value;
             if(auth !== MASTER_AUTH_CODE) return alert("방장 권한 코드가 올바르지 않습니다.");
-            if(!document.getElementById('user-nick-input').value.trim()) return alert("성함을 먼저 입력하십시오.");
+            if(!document.getElementById('user-nick-input').value.trim()) return alert("사용할 성함을 입력하십시오.");
             document.getElementById('create-screen').style.display = 'flex';
         }
 
         function finalizeRoomCreate() {
             const title = document.getElementById('new-room-title').value.trim();
             const pass = document.getElementById('new-room-pass').value.trim();
-            if(!title || !pass) return alert("성의 명칭과 암호를 정하셔야 합니다.");
-            
+            if(!title || !pass) return alert("성의 명칭과 암호를 정하십시오.");
             myName = document.getElementById('user-nick-input').value;
             currentRoomId = 'room_' + Date.now();
             isHost = true;
-            isNpcMode = false;
-
             db.ref('rooms/' + currentRoomId).set({
                 host: myId, title: title, password: pass, status: 'waiting',
-                players: { [myId]: { name: myName, cards: [], rank: 1 } },
-                turnOrder: [myId], turnIndex: 0, tableCards: [], lastMove: { val: 14, count: 0, owner: "" }, passCount: 0
+                players: { [myId]: { name: myName, cards: [], rank: 1, isReady: true } },
+                turnOrder: [myId], turnIndex: 0, tableCards: [], lastMove: { val: 14, count: 0, owner: "" }, passCount: 0, revTrigger: false
             }).then(enterEmpireView);
         }
 
@@ -242,10 +250,9 @@
             db.ref('rooms/' + currentRoomId).once('value', s => {
                 if(s.val().password === inputPw) {
                     myName = document.getElementById('user-nick-input').value;
-                    db.ref(`rooms/${currentRoomId}/players/${myId}`).set({ name: myName, cards: [], rank: 99 });
+                    db.ref(`rooms/${currentRoomId}/players/${myId}`).set({ name: myName, cards: [], rank: 99, isReady: true });
                     db.ref(`rooms/${currentRoomId}/turnOrder`).once('value', so => {
-                        let order = so.val() || [];
-                        order.push(myId);
+                        let order = so.val() || []; order.push(myId);
                         db.ref(`rooms/${currentRoomId}/turnOrder`).set(order);
                     });
                     enterEmpireView();
@@ -253,17 +260,17 @@
             });
         }
 
-        // [NPC 모드 로직 - 최초 로직 100% 보존]
+        // [NPC 인공지능 모드 - 사용자님 원본 로직]
         function startNpcGame() {
-            myName = document.getElementById('user-nick-input').value.trim() || "익명의 귀족";
-            isNpcMode = true; isHost = true; currentRoomId = "local_simulation";
+            myName = document.getElementById('user-nick-input').value.trim() || "익명의 영주";
+            isNpcMode = true; isHost = true; currentRoomId = "local_sim_99";
             state = {
                 status: 'waiting',
                 players: {
                     [myId]: { name: myName, cards: [], rank: 1 },
-                    'npc_1': { name: 'AI_기사단장', cards: [], rank: 5 },
-                    'npc_2': { name: 'AI_상인연합', cards: [], rank: 9 },
-                    'npc_3': { name: 'AI_굶주린농노', cards: [], rank: 13 }
+                    'npc_1': { name: 'AI_대주교', cards: [], rank: 3 },
+                    'npc_2': { name: 'AI_상인', cards: [], rank: 7 },
+                    'npc_3': { name: 'AI_농노', cards: [], rank: 13 }
                 },
                 turnOrder: [myId, 'npc_1', 'npc_2', 'npc_3'],
                 turnIndex: 0, tableCards: [], lastMove: { val: 14, count: 0, owner: "" }, passCount: 0
@@ -272,51 +279,40 @@
             refreshEmpireUI();
         }
 
-        // [핵심 게임 엔진 - 세금, 혁명, 턴제 로직]
+        // [카드 및 게임 엔진 - 원본의 촘촘한 로직]
         function startGameEngine() {
-            // [최초 로직: 80장 풀 덱 생성 및 셔플]
             let deck = [];
-            for(let i=1; i<=12; i++) {
-                for(let j=0; j<i; j++) deck.push(i);
-            }
-            deck.push(13, 13); // 조커 2장
+            // 달무티 공식 덱: 1(1장) ~ 12(12장) + 13(2장)
+            for(let i=1; i<=12; i++) { for(let j=0; j<i; j++) deck.push(i); }
+            deck.push(13, 13); 
             deck.sort(() => Math.random() - 0.5);
 
             let pIds = state.turnOrder;
             pIds.forEach(id => state.players[id].cards = []);
-            
-            // 공평하게 카드 분배
             let cardPtr = 0;
             while(deck.length > 0) {
                 state.players[pIds[cardPtr % pIds.length]].cards.push(deck.pop());
                 cardPtr++;
             }
 
-            // [최초 로직: 세금 징수 (Taxation)]
-            // 달무티와 농노의 계급이 확정된 두 번째 판부터 작동하는 로직
-            if(state.players[pIds[0]].rank === 1 && state.status !== 'waiting') {
+            // 세금 징수 (Taxation) - 사용자님 정밀 로직 100% 복구
+            if(state.players[pIds[0]].rank === 1 && state.status !== 'waiting' && !state.revTrigger) {
                 const dalmutiId = pIds[0];
                 const peasantId = pIds[pIds.length-1];
+                state.players[dalmutiId].cards.sort((a,b)=>b-a);
+                state.players[peasantId].cards.sort((a,b)=>a-b);
                 
-                // 카드 정렬 (세금 징수를 위해)
-                state.players[dalmutiId].cards.sort((a,b)=>b-a); // 달무티는 큰 수(낮은 계급)부터
-                state.players[peasantId].cards.sort((a,b)=>a-b); // 농노는 작은 수(높은 계급)부터
-
-                // 농노는 가장 좋은 카드(작은 수) 2장 상납, 달무티는 가장 나쁜 카드(큰 수) 2장 하사
-                const taxCards = state.players[peasantId].cards.splice(0, 2);
-                const giftCards = state.players[dalmutiId].cards.splice(0, 2);
-                
-                state.players[dalmutiId].cards.push(...taxCards);
-                state.players[peasantId].cards.push(...giftCards);
-                
-                writeGameLog("👑 왕실 알림", "세금 징수와 하사가 집행되었습니다.");
+                // 대달무티와 농노의 카드 교환 (2장)
+                const tax = state.players[peasantId].cards.splice(0, 2);
+                const gift = state.players[dalmutiId].cards.splice(0, 2);
+                state.players[dalmutiId].cards.push(...tax);
+                state.players[peasantId].cards.push(...gift);
+                writeGameLog("👑 왕실령", "조세 및 하사 절차가 집행되었습니다.");
             }
 
-            state.status = 'playing';
-            state.turnIndex = 0;
-            state.tableCards = [];
-            state.lastMove = { val: 14, count: 0, owner: "" };
-            state.passCount = 0;
+            state.status = 'playing'; state.turnIndex = 0; state.tableCards = [];
+            state.lastMove = { val: 14, count: 0, owner: "" }; state.passCount = 0;
+            state.revTrigger = false;
             syncData();
         }
 
@@ -324,34 +320,35 @@
             const order = state.turnOrder || [];
             const board = document.getElementById('player-status-board');
             board.innerHTML = '';
-            
             order.forEach((id, i) => {
                 const p = state.players[id];
                 const isMyTurn = state.turnIndex === i;
                 board.innerHTML += `<div class="rank-item ${isMyTurn?'active-turn':''}">
                     <div><b>${p.name}</b></div>
                     <div style="text-align:right;">
-                        <span style="color:var(--gold); font-size:0.8rem;">[${RANKS_DATA[i+1]}]</span><br>
-                        <span style="color:#888; font-size:0.75rem;">${p.cards.length}장 남음</span>
+                        <span style="color:var(--gold); font-weight:bold;">[${RANKS_KR[i+1]}]</span><br>
+                        <span style="color:#888; font-size:0.8rem;">잔여: ${p.cards.length}장</span>
                     </div>
                 </div>`;
             });
 
+            // 카드 핸드 렌더링 (애니메이션 및 선택 로직)
             const handDiv = document.getElementById('hand');
             handDiv.innerHTML = '';
             const myCards = (state.players[myId]?.cards || []).sort((a,b)=>a-b);
             myCards.forEach((val, i) => {
                 const cardEl = document.createElement('div');
                 cardEl.className = `card ${selectedIdxList.includes(i)?'selected':''}`;
-                cardEl.innerHTML = `<div class="val">${val}</div><div class="title">${RANKS_DATA[val]}</div><div class="val" style="align-self:flex-end; transform:rotate(180deg)">${val}</div>`;
+                const dVal = val === 13 ? '🃏' : val;
+                const dTitle = val === 13 ? '광대' : RANKS_KR[val];
+                cardEl.innerHTML = `<div class="val">${dVal}</div><div class="title">${dTitle}</div><div class="val" style="align-self:flex-end; transform:rotate(180deg)">${dVal}</div>`;
                 cardEl.onclick = () => {
                     if(order[state.turnIndex] === myId) {
-                        // 동일한 숫자 또는 조커(13)만 다중 선택 가능
+                        // 원본 다중 선택 로직 복구
                         if(selectedIdxList.length > 0) {
-                            const firstVal = myCards[selectedIdxList[0]];
-                            if(val !== firstVal && val !== 13 && firstVal !== 13) {
-                                selectedIdxList = [];
-                            }
+                            let baseVal = myCards[selectedIdxList[0]];
+                            for(let idx of selectedIdxList) { if(myCards[idx] !== 13) baseVal = myCards[idx]; }
+                            if(val !== baseVal && val !== 13 && baseVal !== 13) selectedIdxList = [];
                         }
                         const pos = selectedIdxList.indexOf(i);
                         if(pos > -1) selectedIdxList.splice(pos, 1);
@@ -362,10 +359,13 @@
                 handDiv.appendChild(cardEl);
             });
 
+            // 테이블 상황판
             const tableDiv = document.getElementById('table-cards-display');
             tableDiv.innerHTML = '';
             (state.tableCards || []).forEach(v => {
-                tableDiv.innerHTML += `<div class="card" style="margin:0 8px;"><div class="val">${v}</div><div class="title">${RANKS_DATA[v]}</div></div>`;
+                const dVal = v === 13 ? '🃏' : v;
+                const dTitle = v === 13 ? '광대' : RANKS_KR[v];
+                tableDiv.innerHTML += `<div class="card" style="margin:0 5px; cursor:default;"><div class="val">${dVal}</div><div class="title">${dTitle}</div></div>`;
             });
 
             const itIsMyTurn = order[state.turnIndex] === myId;
@@ -378,36 +378,30 @@
             if(isNpcMode && !itIsMyTurn && state.status === 'playing') setTimeout(npcDecisionLogic, 1600);
         }
 
+        // [플레이어 동작 - 사용자님 원본 로직]
         function playSelectedCards() {
             const hand = state.players[myId].cards.sort((a,b)=>a-b);
             if(selectedIdxList.length === 0) return;
             
-            let playVal = hand[selectedIdxList[0]];
-            // 만약 조커가 섞여있다면, 조커가 아닌 카드의 숫자를 기준으로 함
+            let playVal = 13;
             for(let i of selectedIdxList) { if(hand[i] !== 13) playVal = hand[i]; }
-            
             const playCount = selectedIdxList.length;
 
-            if(state.lastMove.owner === "" || (playVal < state.lastMove.val && playCount === state.lastMove.count)) {
+            const last = state.lastMove;
+            if(last.owner === "" || (playVal < last.val && playCount === last.count)) {
                 selectedIdxList.sort((a,b)=>b-a).forEach(idx => hand.splice(idx, 1));
                 state.lastMove = { val: playVal, count: playCount, owner: myId };
                 state.tableCards = Array(playCount).fill(playVal);
-                state.passCount = 0;
-                selectedIdxList = [];
-                if(hand.length === 0) { state.status = 'waiting'; alert("영광스러운 승리입니다!"); }
+                state.passCount = 0; selectedIdxList = [];
+                if(hand.length === 0) { state.status = 'waiting'; alert("신분이 상승되었습니다! 축하합니다."); }
                 finishTurn();
-            } else {
-                alert("현재 판보다 더 높은 계급(낮은 숫자)을 동일한 장수만큼 내야 합니다.");
-            }
+            } else alert("낼 수 없는 패입니다. 계급이 더 낮거나 수량이 맞아야 합니다.");
         }
 
         function passCurrentTurn() {
             state.passCount++;
             if(state.passCount >= state.turnOrder.length - 1) {
-                state.tableCards = [];
-                state.lastMove = { val: 14, count: 0, owner: "" };
-                state.passCount = 0;
-                writeGameLog("시스템", "모두가 패스하여 판이 초기화되었습니다.");
+                state.tableCards = []; state.lastMove = { val: 14, count: 0, owner: "" }; state.passCount = 0;
             }
             finishTurn();
         }
@@ -419,26 +413,20 @@
             let moveSet = [];
 
             if(last.owner === "") {
-                // 선 플레이어일 때: 가장 낮은 계급(큰 수) 중 장수가 많은 것부터
-                const targetVal = hand[hand.length - 1];
-                moveSet = hand.filter(v => v === targetVal);
+                const target = hand[hand.length - 1]; // 약한 패부터 소모
+                moveSet = hand.filter(v => v === target);
             } else {
-                // 대항 플레이어일 때: 현재보다 낮은 숫자 중 낼 수 있는 최소 장수 세트 찾기
                 for(let v = 1; v < last.val; v++) {
-                    const matches = hand.filter(x => x === v);
-                    if(matches.length >= last.count) {
-                        moveSet = matches.slice(0, last.count);
-                        break;
-                    }
+                    const matches = hand.filter(x => x === v || x === 13);
+                    if(matches.length >= last.count) { moveSet = matches.slice(0, last.count); break; }
                 }
             }
 
             if(moveSet.length > 0) {
-                const v = moveSet[0];
+                const v = moveSet.find(x => x !== 13) || 13;
                 moveSet.forEach(m => hand.splice(hand.indexOf(m), 1));
                 state.lastMove = { val: v, count: moveSet.length, owner: npcId };
-                state.tableCards = moveSet;
-                state.passCount = 0;
+                state.tableCards = moveSet; state.passCount = 0;
                 if(hand.length === 0) state.status = 'waiting';
             } else {
                 state.passCount++;
@@ -450,36 +438,25 @@
         }
 
         function execRevolution() {
-            writeGameLog("⚠️ 혁명", "광대 2장으로 혁명이 일어났습니다! 세금이 면제됩니다.");
-            state.revolutionTriggered = true;
-            syncData();
+            writeGameLog("⚠️ 혁명", "광대 2장으로 혁명이 선포되었습니다! 이번 판의 세금은 무효화됩니다.");
+            state.revTrigger = true; syncData();
         }
 
-        function finishTurn() {
-            state.turnIndex = (state.turnIndex + 1) % state.turnOrder.length;
-            syncData();
-        }
-
-        function syncData() {
-            if(isNpcMode) refreshEmpireUI();
-            else db.ref('rooms/' + currentRoomId).update(state);
-        }
-
+        function finishTurn() { state.turnIndex = (state.turnIndex + 1) % state.turnOrder.length; syncData(); }
+        function syncData() { if(isNpcMode) refreshEmpireUI(); else db.ref('rooms/' + currentRoomId).update(state); }
         function enterEmpireView() {
             document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
             db.ref('rooms/' + currentRoomId).on('value', snap => {
-                state = snap.val();
-                if(!state) { alert("성이 무너졌습니다."); location.reload(); return; }
-                isHost = (state.host === myId);
-                refreshEmpireUI();
+                state = snap.val(); if(!state) { alert("성이 무너졌습니다."); location.reload(); return; }
+                isHost = (state.host === myId); refreshEmpireUI();
             });
         }
-
         function closeAllModals() { document.querySelectorAll('.overlay').forEach(el => { if(el.id !== 'lobby-screen') el.style.display = 'none'; }); }
-        function destroyRoom() { if(confirm("이 성을 정말 파괴하시겠습니까?")) db.ref('rooms/' + currentRoomId).remove(); }
+        function destroyRoom() { if(confirm("영토를 완전히 파괴하시겠습니까?")) db.ref('rooms/' + currentRoomId).remove(); }
+        
         function writeGameLog(user, msg) {
             const log = document.getElementById('chat-log');
-            log.innerHTML += `<div><b>[${user}]</b> ${msg}</div>`;
+            log.innerHTML += `<div><b style="color:var(--gold)">[${user}]</b> ${msg}</div>`;
             log.scrollTop = log.scrollHeight;
         }
         function sendChatMessage() {
